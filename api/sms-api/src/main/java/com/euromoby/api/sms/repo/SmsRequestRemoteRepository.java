@@ -30,10 +30,9 @@ public class SmsRequestRemoteRepository {
     public SmsRequest save(SmsRequest entity) {
         SmsRequest savedSmsRequest = entity
                 .toBuilder()
-                .createdAt(LocalDateTime.now())
+                .createdAt(Optional.ofNullable(entity.getCreatedAt()).orElse(LocalDateTime.now()))
                 .updatedAt(LocalDateTime.now())
                 .build();
-
         map.put(savedSmsRequest.getId(), savedSmsRequest);
         return savedSmsRequest;
     }

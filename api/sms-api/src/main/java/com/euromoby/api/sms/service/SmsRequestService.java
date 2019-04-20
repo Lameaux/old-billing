@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,7 +24,6 @@ public class SmsRequestService {
         this.repository = repository;
     }
 
-
     public SmsRequest save(SmsRequest smsRequest) {
         SmsRequest newSmsRequest = smsRequest
                 .toBuilder()
@@ -36,13 +34,10 @@ public class SmsRequestService {
     }
 
     public SmsRequest cancel(SmsRequest smsRequest) {
-        if (smsRequest.getStatus() == SmsRequestStatus.IN_PROGRESS) {
-            return smsRequest;
+        if (smsRequest.getStatus() == SmsRequestStatus.NEW) {
+            smsRequest.setStatus(SmsRequestStatus.CANCELLED);
+            return repository.save(smsRequest);
         }
-
-        smsRequest.setStatus(SmsRequestStatus.CANCELLED);
-        smsRequest.setUpdatedAt(LocalDateTime.now());
-
         return smsRequest;
     }
 
