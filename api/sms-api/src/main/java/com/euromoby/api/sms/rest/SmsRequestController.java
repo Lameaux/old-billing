@@ -2,17 +2,15 @@ package com.euromoby.api.sms.rest;
 
 import com.euromoby.api.sms.dto.SmsRequest;
 import com.euromoby.api.sms.dto.SmsRequestStatus;
-import com.euromoby.api.sms.exception.SmsRequestNotFoundException;
+import com.euromoby.api.sms.exception.MethodNotAllowedException;
+import com.euromoby.api.sms.exception.ResourceNotFoundException;
 import com.euromoby.api.sms.service.SmsRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.hateoas.Resources;
-import org.springframework.hateoas.VndErrors;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,24 +21,24 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping(path = "/api/v1.0/sms/requests", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = SmsRequestController.BASE_URL, produces = MediaType.APPLICATION_JSON_VALUE)
 public class SmsRequestController {
-    private SmsRequestService service;
-    private SmsRequestResourceAssembler assembler;
+    static final String BASE_URL = "/api/v1/sms/requests";
 
     @Autowired
-    public SmsRequestController(SmsRequestService service, SmsRequestResourceAssembler assembler) {
-        Assert.notNull(service, "SmsRequestService is missing");
-        Assert.notNull(assembler, "SmsRequestResourceAssembler is missing");
+    private SmsRequestService service;
 
-        this.service = service;
-        this.assembler = assembler;
+    private SmsRequestResourceAssembler assembler;
+
+    public SmsRequestController() {
+        assembler = new SmsRequestResourceAssembler();
     }
 
     @GetMapping("/{id}")
     public Resource<SmsRequest> one(@PathVariable UUID id) {
-        return assembler.toResource(service.findById(id).orElseThrow(() -> new SmsRequestNotFoundException(id)));
+        return assembler.toResource(service.findById(id).orElseThrow(() -> new ResourceNotFoundException(id)));
     }
+
 
     @GetMapping
     public Resources<Resource<SmsRequest>> all() {
@@ -51,32 +49,28 @@ public class SmsRequestController {
         return new Resources<>(smsRequests, linkTo(methodOn(SmsRequestController.class).all()).withSelfRel());
     }
 
-    @PostMapping
-    public ResponseEntity<Resource<SmsRequest>> newRequest(@RequestBody SmsRequest smsRequest) {
-        SmsRequest newSmsRequest = service.save(smsRequest);
+    @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<Resource<SmsRequest>> newRequest(@RequestParam String msisdn, @RequestParam String message) {
+        SmsRequest newSmsRequest = SmsRequest.builder().msisdn(msisdn).message(message).build();
+
+        SmsRequest savedSmsRequest = service.save(newSmsRequest);
 
         return ResponseEntity
-                .created(linkTo(methodOn(SmsRequestController.class).one(newSmsRequest.getId())).toUri())
-                .body(assembler.toResource(newSmsRequest));
+                .created(linkTo(methodOn(SmsRequestController.class).one(savedSmsRequest.getId())).toUri())
+                .body(assembler.toResource(savedSmsRequest));
     }
 
     @DeleteMapping("/{id}/cancel")
     public ResponseEntity<ResourceSupport> cancel(@PathVariable UUID id) {
-        SmsRequest smsRequest = service.findById(id).orElseThrow(() -> new SmsRequestNotFoundException(id));
+        SmsRequest smsRequest = service.findById(id).orElseThrow(() -> new ResourceNotFoundException(id));
 
         smsRequest = service.cancel(smsRequest);
 
-        if (smsRequest.getStatus() == SmsRequestStatus.CANCELLED) {
-            return ResponseEntity.ok(assembler.toResource(service.save(smsRequest)));
+        if (smsRequest.getStatus() != SmsRequestStatus.CANCELLED) {
+            throw new MethodNotAllowedException("You can't cancel a request that is in the "
+                    + smsRequest.getStatus() + " status");
         }
 
-        return ResponseEntity
-                .status(HttpStatus.METHOD_NOT_ALLOWED)
-                .body(
-                        new VndErrors.VndError(
-                                "Method not allowed",
-                                "You can't cancel a request that is in the " + smsRequest.getStatus() + " status"
-                        )
-                );
+        return ResponseEntity.ok(assembler.toResource(service.save(smsRequest)));
     }
 }

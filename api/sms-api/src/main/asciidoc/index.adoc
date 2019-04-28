@@ -1,0 +1,36 @@
+= SMS Gateway API Documentation
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:highlightjs-theme: github
+:toc: left
+:toclevels: 2
+:sectlinks:
+:sectnums:
+
+[introduction]
+== Introduction
+
+This document describes the SMS Gateway API by EUROMOBY.
+
+The API is running at https://euromoby.com/api/v1/sms
+
+== SMS Requests API
+
+Collection of CRUD API endpoints for outgoing SMS requests.
+
+An SMS Request represents a state of an outgoing SMS message.
+
+=== Create SMS Request
+
+Creates a new SMS Request.
+
+operation::sms-requests/create[snippets='http-request,request-parameters,curl-request,http-response,response-fields']
+
+=== Get SMS Request By Id
+
+Returns an SMS request by its id.
+
+operation::sms-requests/get-by-id[snippets='http-request,path-parameters,curl-request,http-response,response-fields']
+
+

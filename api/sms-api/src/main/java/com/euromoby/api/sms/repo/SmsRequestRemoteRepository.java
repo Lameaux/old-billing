@@ -19,7 +19,7 @@ public class SmsRequestRemoteRepository {
         SmsRequest newSmsRequest = SmsRequest.builder()
                 .id(UUID.randomUUID())
                 .status(SmsRequestStatus.NEW)
-                .msisdn(123456789012345L)
+                .msisdn("+420123456789")
                 .message("lorem ipsum dolor")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
