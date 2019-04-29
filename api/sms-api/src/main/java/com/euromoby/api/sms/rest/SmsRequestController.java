@@ -11,8 +11,12 @@ import org.springframework.hateoas.ResourceSupport;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -22,17 +26,15 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping(path = SmsRequestController.BASE_URL, produces = MediaType.APPLICATION_JSON_VALUE)
+@Validated
 public class SmsRequestController {
     static final String BASE_URL = "/api/v1/sms/requests";
+    private static final String MSISDN_REGEX = "^\\+\\d{8,15}$";
 
     @Autowired
     private SmsRequestService service;
 
-    private SmsRequestResourceAssembler assembler;
-
-    public SmsRequestController() {
-        assembler = new SmsRequestResourceAssembler();
-    }
+    private SmsRequestResourceAssembler assembler = new SmsRequestResourceAssembler();
 
     @GetMapping("/{id}")
     public Resource<SmsRequest> one(@PathVariable UUID id) {
@@ -50,14 +52,13 @@ public class SmsRequestController {
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity<Resource<SmsRequest>> newRequest(@RequestParam String msisdn, @RequestParam String message) {
-        SmsRequest newSmsRequest = SmsRequest.builder().msisdn(msisdn).message(message).build();
-
-        SmsRequest savedSmsRequest = service.save(newSmsRequest);
+    public ResponseEntity<Resource<SmsRequest>> newRequest(@Valid @Pattern(regexp = MSISDN_REGEX) @RequestParam String msisdn,
+                                                           @Valid @NotEmpty @RequestParam String message) {
+        SmsRequest smsRequest = service.create(msisdn, message);
 
         return ResponseEntity
-                .created(linkTo(methodOn(SmsRequestController.class).one(savedSmsRequest.getId())).toUri())
-                .body(assembler.toResource(savedSmsRequest));
+                .created(linkTo(methodOn(SmsRequestController.class).one(smsRequest.getId())).toUri())
+                .body(assembler.toResource(smsRequest));
     }
 
     @DeleteMapping("/{id}/cancel")

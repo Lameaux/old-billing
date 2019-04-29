@@ -40,25 +40,21 @@ public class SmsRequestControllerDocTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private final SmsRequest savedSmsRequest;
-
-    public SmsRequestControllerDocTest() {
-        savedSmsRequest = SmsRequest.builder()
-                .id(UUID.randomUUID())
-                .status(SmsRequestStatus.NEW)
-                .msisdn(MSISDN)
-                .message(MESSAGE)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-    }
+    private final SmsRequest savedSmsRequest = SmsRequest.builder()
+            .id(UUID.randomUUID())
+            .status(SmsRequestStatus.NEW)
+            .msisdn(MSISDN)
+            .message(MESSAGE)
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
 
     @MockBean
     private SmsRequestService smsRequestService;
 
     @Test
     public void createSmsRequest() throws Exception {
-        Mockito.when(smsRequestService.save(Mockito.any(SmsRequest.class))).thenReturn(savedSmsRequest);
+        Mockito.when(smsRequestService.create(MSISDN, MESSAGE)).thenReturn(savedSmsRequest);
 
         mockMvc.perform(RestDocumentationRequestBuilders.post(SmsRequestController.BASE_URL)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)

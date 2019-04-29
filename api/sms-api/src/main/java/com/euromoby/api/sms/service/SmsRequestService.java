@@ -17,6 +17,14 @@ public class SmsRequestService {
     @Autowired
     private SmsRequestRemoteRepository repository;
 
+    public SmsRequest create(String msisdn, String message) {
+        SmsRequest newSmsRequest = SmsRequest.builder()
+                .msisdn(msisdn)
+                .message(message)
+                .build();
+        return save(newSmsRequest);
+    }
+
     public SmsRequest save(SmsRequest smsRequest) {
         SmsRequest newSmsRequest = smsRequest
                 .toBuilder()
