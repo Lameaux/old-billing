@@ -1,10 +1,8 @@
-CREATE EXTENSION pgcrypto;
-
 CREATE TABLE users
 (
-    id         UUID PRIMARY KEY   DEFAULT gen_random_uuid(),
-    email      TEXT      NOT NULL,
-    password   TEXT      NOT NULL,
+    id         UUID PRIMARY KEY,
+    email      VARCHAR(255) NOT NULL,
+    password   VARCHAR(255) NOT NULL,
     active     boolean   NOT NULL default true,
     created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
     updated_at timestamp NOT NULL default CURRENT_TIMESTAMP
