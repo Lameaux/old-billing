@@ -2,15 +2,20 @@ package com.euromoby.api.user.rest;
 
 import com.euromoby.api.user.dto.UserDto;
 import com.euromoby.api.user.service.UserService;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -21,13 +26,23 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@SpringBootTest
 public class UserControllerTest {
     private static final String EMAIL = "test@euromoby.com";
     private static final String PASSWORD = UUID.randomUUID().toString();
 
     @Autowired
+    private WebApplicationContext context;
+
     private MockMvc mockMvc;
+
+    @Before
+    public void setup() {
+        mockMvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply(SecurityMockMvcConfigurers.springSecurity())
+                .build();
+    }
 
     @MockBean
     private UserService userService;
@@ -38,6 +53,7 @@ public class UserControllerTest {
             .active(true)
             .build();
 
+    @WithMockUser(roles={"ADMIN"})
     @Test
     public void returnsAllUsers() throws Exception {
         Mockito.when(userService.findAll()).thenReturn(Arrays.asList(savedUser));
@@ -51,7 +67,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void returnsUsers() throws Exception {
+    @WithMockUser(username = "user1", password = "pwd", roles = "USER")
+    public void returnsUser() throws Exception {
         Mockito.when(userService.findById(savedUser.getId())).thenReturn(Optional.of(savedUser));
 
         mockMvc.perform(get(UserController.BASE_URL + "/{id}", savedUser.getId()))
@@ -62,8 +79,9 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.active").value(savedUser.isActive()));
     }
 
+    @WithMockUser(roles={"ADMIN"})
     @Test
-    public void createsUsers() throws Exception {
+    public void createsUser() throws Exception {
         Mockito.when(userService.create(EMAIL, PASSWORD)).thenReturn(savedUser);
 
         mockMvc.perform(post(UserController.BASE_URL)
@@ -77,11 +95,13 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.active").value(savedUser.isActive()));
     }
 
+    @WithMockUser(roles={"ADMIN"})
     @Test
     public void missingContentType() throws Exception {
         mockMvc.perform(post(UserController.BASE_URL)).andExpect(status().isUnsupportedMediaType());
     }
 
+    @WithMockUser(roles={"ADMIN"})
     @Test
     public void missingParameters() throws Exception {
         mockMvc.perform(post(UserController.BASE_URL)
@@ -89,6 +109,7 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @WithMockUser(roles={"ADMIN"})
     @Test
     public void invalidEmail() throws Exception {
         mockMvc.perform(post(UserController.BASE_URL)
@@ -98,6 +119,7 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @WithMockUser(roles={"ADMIN"})
     @Test
     public void invalidPassword() throws Exception {
         mockMvc.perform(post(UserController.BASE_URL)

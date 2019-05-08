@@ -8,6 +8,7 @@ import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +34,7 @@ public class UserController {
     private UserResourceAssembler assembler = new UserResourceAssembler();
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Resources<Resource<UserDto>> all() {
         List<Resource<UserDto>> users = service.findAll().stream()
                 .map(assembler::toResource)
@@ -42,11 +44,13 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public Resource<UserDto> one(@PathVariable UUID id) {
         return assembler.toResource(service.findById(id).orElseThrow(() -> new ResourceNotFoundException(id)));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Resource<UserDto>> createUserProfile(@Valid @Email @RequestParam String email,
                                                                @Valid @Size(min = 6) @RequestParam String password) {
         UserDto userProfile = service.create(email, password);

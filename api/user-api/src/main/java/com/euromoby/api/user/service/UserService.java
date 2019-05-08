@@ -29,6 +29,7 @@ public class UserService {
                 .email(email)
                 .password(passwordEncoder.encode(password))
                 .active(true)
+                .internal(false)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

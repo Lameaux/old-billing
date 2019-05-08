@@ -24,6 +24,7 @@ public class User {
     private String email;
     private String password;
     private boolean active;
+    private boolean internal;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
