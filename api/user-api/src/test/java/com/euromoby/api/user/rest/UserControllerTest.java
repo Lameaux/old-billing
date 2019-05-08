@@ -1,7 +1,7 @@
 package com.euromoby.api.user.rest;
 
-import com.euromoby.api.user.dto.UserProfile;
-import com.euromoby.api.user.service.UserProfileService;
+import com.euromoby.api.user.dto.UserDto;
+import com.euromoby.api.user.service.UserService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebMvcTest
-public class UserProfileControllerTest {
+public class UserControllerTest {
     private static final String EMAIL = "test@euromoby.com";
     private static final String PASSWORD = UUID.randomUUID().toString();
 
@@ -29,56 +30,68 @@ public class UserProfileControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private UserProfileService userProfileService;
+    private UserService userService;
 
-    private UserProfile savedUserProfile = UserProfile.builder()
+    private UserDto savedUser = UserDto.builder()
             .id(UUID.randomUUID())
             .email(EMAIL)
             .active(true)
             .build();
 
     @Test
-    public void returnsUserProfile() throws Exception {
-        Mockito.when(userProfileService.findById(savedUserProfile.getId())).thenReturn(Optional.of(savedUserProfile));
+    public void returnsAllUsers() throws Exception {
+        Mockito.when(userService.findAll()).thenReturn(Arrays.asList(savedUser));
 
-        mockMvc.perform(get(UserProfileController.BASE_URL + "/{id}", savedUserProfile.getId()))
+        mockMvc.perform(get(UserController.BASE_URL))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andExpect(jsonPath("$.id").value(savedUserProfile.getId().toString()))
-                .andExpect(jsonPath("$.email").value(savedUserProfile.getEmail()))
-                .andExpect(jsonPath("$.active").value(savedUserProfile.isActive()));
+                .andExpect(jsonPath("$.content[0].id").value(savedUser.getId().toString()))
+                .andExpect(jsonPath("$.content[0].email").value(savedUser.getEmail()))
+                .andExpect(jsonPath("$.content[0].active").value(savedUser.isActive()));
     }
 
     @Test
-    public void createsUserProfile() throws Exception {
-        Mockito.when(userProfileService.create(EMAIL, PASSWORD)).thenReturn(savedUserProfile);
+    public void returnsUsers() throws Exception {
+        Mockito.when(userService.findById(savedUser.getId())).thenReturn(Optional.of(savedUser));
 
-        mockMvc.perform(post(UserProfileController.BASE_URL)
+        mockMvc.perform(get(UserController.BASE_URL + "/{id}", savedUser.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.id").value(savedUser.getId().toString()))
+                .andExpect(jsonPath("$.email").value(savedUser.getEmail()))
+                .andExpect(jsonPath("$.active").value(savedUser.isActive()));
+    }
+
+    @Test
+    public void createsUsers() throws Exception {
+        Mockito.when(userService.create(EMAIL, PASSWORD)).thenReturn(savedUser);
+
+        mockMvc.perform(post(UserController.BASE_URL)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .param("email", EMAIL)
                 .param("password", PASSWORD))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andExpect(jsonPath("$.id").value(savedUserProfile.getId().toString()))
-                .andExpect(jsonPath("$.email").value(savedUserProfile.getEmail()))
-                .andExpect(jsonPath("$.active").value(savedUserProfile.isActive()));
+                .andExpect(jsonPath("$.id").value(savedUser.getId().toString()))
+                .andExpect(jsonPath("$.email").value(savedUser.getEmail()))
+                .andExpect(jsonPath("$.active").value(savedUser.isActive()));
     }
 
     @Test
     public void missingContentType() throws Exception {
-        mockMvc.perform(post(UserProfileController.BASE_URL)).andExpect(status().isUnsupportedMediaType());
+        mockMvc.perform(post(UserController.BASE_URL)).andExpect(status().isUnsupportedMediaType());
     }
 
     @Test
     public void missingParameters() throws Exception {
-        mockMvc.perform(post(UserProfileController.BASE_URL)
+        mockMvc.perform(post(UserController.BASE_URL)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     public void invalidEmail() throws Exception {
-        mockMvc.perform(post(UserProfileController.BASE_URL)
+        mockMvc.perform(post(UserController.BASE_URL)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .param("email", UUID.randomUUID().toString())
                 .param("password", PASSWORD))
@@ -87,7 +100,7 @@ public class UserProfileControllerTest {
 
     @Test
     public void invalidPassword() throws Exception {
-        mockMvc.perform(post(UserProfileController.BASE_URL)
+        mockMvc.perform(post(UserController.BASE_URL)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .param("email", EMAIL)
                 .param("password", ""))

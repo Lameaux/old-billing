@@ -3,6 +3,7 @@ package com.euromoby.api.user.rest;
 import com.euromoby.api.user.dto.ErrorDetails;
 import com.euromoby.api.user.exception.BadRequestException;
 import com.euromoby.api.user.exception.ResourceNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -17,16 +18,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
-public class UserProfileControllerAdvice {
+public class UserControllerAdvice {
 
     private final Map<Class, HttpStatus> exceptionMapping = new HashMap<>();
 
-    public UserProfileControllerAdvice() {
+    public UserControllerAdvice() {
         exceptionMapping.put(ResourceNotFoundException.class, HttpStatus.NOT_FOUND);
         exceptionMapping.put(HttpMediaTypeNotSupportedException.class, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
         exceptionMapping.put(BadRequestException.class, HttpStatus.BAD_REQUEST);
         exceptionMapping.put(MissingServletRequestParameterException.class, HttpStatus.BAD_REQUEST);
         exceptionMapping.put(ConstraintViolationException.class, HttpStatus.BAD_REQUEST);
+        exceptionMapping.put(DataIntegrityViolationException.class, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(Exception.class)
