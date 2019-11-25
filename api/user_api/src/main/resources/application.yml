@@ -1,0 +1,15 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: 'User API'
+  data:
+    mongodb:
+      database: 'user-api-v1'
+
+logging:
+  level:
+    org:
+      springframework:
+        security: 'DEBUG'
