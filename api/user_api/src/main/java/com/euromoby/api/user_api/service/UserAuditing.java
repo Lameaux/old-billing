@@ -12,7 +12,7 @@ public class UserAuditing implements AuditorAware<String> {
     @Override
     public Optional<String> getCurrentAuditor() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String uname = authentication.getName();
-        return Optional.of(uname);
+        if (authentication == null) return Optional.empty();
+        return Optional.of(authentication.getName());
     }
 }

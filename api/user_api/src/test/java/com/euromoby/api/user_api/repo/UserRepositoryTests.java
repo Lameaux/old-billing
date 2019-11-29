@@ -20,7 +20,6 @@ public class UserRepositoryTests {
     private UserRepository userRepository;
 
     @Test
-    @WithMockUser
     public void findByUsername() {
         String userName = UUID.randomUUID().toString();
 
