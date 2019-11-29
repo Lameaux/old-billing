@@ -8,6 +8,7 @@ import com.euromoby.api.user_api.rest.exceptions.UserNotFoundException;
 import com.euromoby.api.user_api.service.UserService;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -37,6 +38,7 @@ public class UserRestController {
         ).build();
     }
 
+    @Secured("ROLE_ADMIN")
     @GetMapping
     public ResponseEntity<Collection<UserResponse>> all() {
         return ResponseEntity.ok(userRepository.findAll()
@@ -44,6 +46,7 @@ public class UserRestController {
                 .collect(Collectors.toList()));
     }
 
+    @Secured("ROLE_ADMIN")
     @GetMapping(value = "/{id}")
     public ResponseEntity<UserResponse> get(@PathVariable String id) {
         return userRepository.findById(id).map(
@@ -51,6 +54,7 @@ public class UserRestController {
         ).orElseThrow(() -> new UserNotFoundException(id));
     }
 
+    @Secured("ROLE_ADMIN")
     @PostMapping
     public ResponseEntity<UserResponse> post(@RequestBody UserRequest userRequest) {
         User user = userService.create(userRequest);
@@ -60,6 +64,7 @@ public class UserRestController {
         return ResponseEntity.created(uri).body(userResponse);
     }
 
+    @Secured("ROLE_ADMIN")
     @PutMapping(value = "/{id}")
     public ResponseEntity<UserResponse> put(@PathVariable String id, @RequestBody UserRequest userRequest) {
         return userService.update(id, userRequest).map(
@@ -71,6 +76,7 @@ public class UserRestController {
         ).orElseThrow(() -> new UserNotFoundException(id));
     }
 
+    @Secured("ROLE_ADMIN")
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<?> delete(@PathVariable String id) {
         return userService.delete(id).map(user -> ResponseEntity.noContent().build())

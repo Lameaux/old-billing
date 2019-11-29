@@ -9,10 +9,12 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Log4j2
 @Component
+@Profile("development")
 public class SampleDataLoader implements ApplicationListener<ApplicationReadyEvent> {
     private final UserRepository userRepository;
     private final UserService userService;
