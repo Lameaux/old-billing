@@ -1,14 +1,17 @@
 server:
-  port: 8080
+  port: 8081
 
 spring:
   profiles:
     active: development
   application:
-    name: 'User API'
+    name: 'Auth API'
   data:
     mongodb:
       database: 'users-v1'
+
+jwt:
+  secret: ThisIsSecretForJWTHS512SignatureAlgorithmThatMUSTHave512bitsKeySize
 
 logging:
   level:

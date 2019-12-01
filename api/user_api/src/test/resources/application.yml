@@ -1,3 +1,9 @@
 spring:
   profiles:
     active: unittest
+
+logging:
+  level:
+    org:
+      springframework:
+        security: 'DEBUG'
