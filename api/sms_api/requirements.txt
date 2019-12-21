@@ -1,0 +1,4 @@
+python-dotenv
+Flask
+flask_restful
+Flask-PyMongo

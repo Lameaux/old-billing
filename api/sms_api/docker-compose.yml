@@ -1,0 +1,19 @@
+version: '3.4'
+
+services:
+  mongodb:
+    image: mongo:latest
+    volumes:
+      - sms-api-mongodb-data:/data/db
+
+  api:
+    build: .
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - 5000:5000
+    links:
+      - mongodb
+
+volumes:
+  sms-api-mongodb-data:
