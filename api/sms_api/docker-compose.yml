@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3'
 
 services:
   mongodb:
@@ -8,12 +8,15 @@ services:
 
   api:
     build: .
+    restart: always
     volumes:
       - .:/usr/src/app
     ports:
       - 5000:5000
     links:
       - mongodb
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/sms_api
 
 volumes:
   sms-api-mongodb-data:

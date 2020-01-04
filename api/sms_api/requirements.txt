@@ -1,4 +1,6 @@
-python-dotenv
+click
 Flask
-flask_restful
 Flask-PyMongo
+Flask-SSLify
+gunicorn
+python-dotenv
