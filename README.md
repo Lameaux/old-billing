@@ -1,4 +1,4 @@
 # euromoby
-euromoby: sms gateway
+euromoby: billing & payment gateway
 
 

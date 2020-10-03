@@ -1,6 +1,0 @@
-click
-Flask
-Flask-PyMongo
-Flask-SSLify
-gunicorn
-python-dotenv
