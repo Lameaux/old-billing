@@ -10,14 +10,13 @@ import java.util.UUID;
 
 @Data
 @NoArgsConstructor
-@Table("payments")
-public class Payment {
-    public static final String STATE_PENDING = "pending";
-
+@Table("merchants")
+public class Merchant {
     @Id
     private UUID id;
-    private UUID merchantId;
-    private String state;
+    private String env;
+    private String secret;
+    private String name;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -5,8 +5,10 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface PaymentRepository extends ReactiveCrudRepository<Payment, String> {
-    Flux<Payment> findAllByMerchantId(String merchantId);
+import java.util.UUID;
 
-    Mono<Payment> findByIdAndMerchantId(String id, String merchantId);
+public interface PaymentRepository extends ReactiveCrudRepository<Payment, UUID> {
+    Flux<Payment> findAllByMerchantId(UUID merchantId);
+
+    Mono<Payment> findByIdAndMerchantId(UUID id, UUID merchantId);
 }
