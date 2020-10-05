@@ -1,5 +1,6 @@
 spring:
-
+  security:
+    ignored: /**
   h2:
     console:
       enabled: true

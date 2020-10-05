@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -39,8 +38,6 @@ public class PaymentService {
         Payment p = new Payment();
         p.setState(Payment.STATE_PENDING);
         p.setMerchantId(merchantId);
-        p.setCreatedAt(LocalDateTime.now());
-        p.setUpdatedAt(LocalDateTime.now());
         return paymentRepository.save(p).map(TO_DTO);
     }
 }

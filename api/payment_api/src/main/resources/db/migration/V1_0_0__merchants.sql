@@ -10,5 +10,6 @@ CREATE TABLE IF NOT EXISTS merchants
 );
 
 INSERT INTO merchants (id, env, secret, name, active, created_at, updated_at)
-VALUES ('63997f34-66d5-4e49-82a3-065dca2ff149', 'test', '065dca2ff149', 'junit', true, now(), now());
+VALUES ('63997f34-66d5-4e49-82a3-065dca2ff149', 'test', '$2a$10$e6pt43pOpxNOsB2MYC.9puYTdVV8HRME155Hq99dW8r6IqtV6qz2O',
+        'junit', true, now(), now());
 
