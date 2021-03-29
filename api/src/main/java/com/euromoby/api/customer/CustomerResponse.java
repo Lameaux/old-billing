@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Data
 public class CustomerResponse {
-    private String id;
+    private UUID id;
     private String merchantReference;
     private String email;
     private String msisdn;

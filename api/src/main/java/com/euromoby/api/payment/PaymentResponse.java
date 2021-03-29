@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Data
 public class PaymentResponse {
-    private String id;
+    private UUID id;
     private String merchantReference;
     private UUID customerId;
     private LocalDateTime createdAt;

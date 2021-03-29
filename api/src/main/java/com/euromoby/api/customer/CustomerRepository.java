@@ -10,4 +10,5 @@ public interface CustomerRepository extends ReactiveCrudRepository<Customer, UUI
     Flux<Customer> findAllByMerchantId(UUID merchantId);
     Mono<Customer> findByIdAndMerchantId(UUID id, UUID merchantId);
     Mono<Customer> findByMerchantIdAndMerchantReference(UUID merchantId, String merchantReference);
+
 }

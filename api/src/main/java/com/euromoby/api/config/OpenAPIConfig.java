@@ -10,6 +10,8 @@ import org.springdoc.core.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+// https://github.com/springdoc/springdoc-openapi-demos/blob/master/springdoc-openapi-spring-boot-2-webflux-functional/src/main/java/org/springdoc/demo/app4/user/RoutingConfiguration.java
+
 @Configuration
 public class OpenAPIConfig {
     @Bean

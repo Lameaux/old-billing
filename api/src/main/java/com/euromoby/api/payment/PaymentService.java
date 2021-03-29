@@ -11,7 +11,7 @@ import java.util.function.Function;
 public class PaymentService {
     private static final Function<Payment, PaymentResponse> TO_DTO = p -> {
         var dto = new PaymentResponse();
-        dto.setId(p.getId().toString());
+        dto.setId(p.getId());
         dto.setMerchantReference(p.getMerchantReference());
         dto.setCustomerId(p.getCustomerId());
         dto.setCreatedAt(p.getCreatedAt());
