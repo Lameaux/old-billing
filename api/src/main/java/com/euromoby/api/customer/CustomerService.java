@@ -33,7 +33,7 @@ public class CustomerService {
         return customerRepository.findByIdAndMerchantId(id, merchantId).map(TO_DTO);
     }
 
-    public Mono<CustomerResponse> findCustomerByMerchantReference(UUID merchantId, String merchantReference) {
+    public Mono<CustomerResponse> getCustomerByMerchantReference(UUID merchantId, String merchantReference) {
         return customerRepository.findByMerchantIdAndMerchantReference(merchantId, merchantReference).map(TO_DTO);
     }
 

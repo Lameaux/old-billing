@@ -7,8 +7,6 @@ import com.euromoby.api.merchant.MerchantRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.server.HandlerFilterFunction;
@@ -17,7 +15,6 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
 
@@ -33,6 +30,14 @@ public class AuthFilter implements HandlerFilterFunction<ServerResponse, ServerR
     @Autowired
     public AuthFilter(MerchantRepository merchantRepository) {
         this.merchantRepository = merchantRepository;
+    }
+
+    public static UUID getMerchantId(ServerRequest serverRequest) {
+        return getMerchant(serverRequest).getId();
+    }
+
+    public static Merchant getMerchant(ServerRequest serverRequest) {
+        return (Merchant) (serverRequest.attribute(ATTRIBUTE_MERCHANT).orElseThrow());
     }
 
     @Override
@@ -55,13 +60,5 @@ public class AuthFilter implements HandlerFilterFunction<ServerResponse, ServerR
             request.attributes().put(ATTRIBUTE_MERCHANT, merchant);
             return next.handle(request);
         }).switchIfEmpty(ErrorResponse.unauthorized(ErrorCode.INVALID_CREDENTIALS, HEADER_MERCHANT));
-    }
-
-    public static UUID getMerchantId(ServerRequest serverRequest) {
-        return getMerchant(serverRequest).getId();
-    }
-
-    public static Merchant getMerchant(ServerRequest serverRequest) {
-        return (Merchant)(serverRequest.attribute(ATTRIBUTE_MERCHANT).orElseThrow());
     }
 }

@@ -32,6 +32,10 @@ public class PaymentService {
         return paymentRepository.findByIdAndMerchantId(id, merchantId).map(TO_DTO);
     }
 
+    public Mono<PaymentResponse> getPaymentByMerchantReference(UUID merchantId, String merchantReference) {
+        return paymentRepository.findByMerchantIdAndMerchantReference(merchantId, merchantReference).map(TO_DTO);
+    }
+
     public Mono<PaymentResponse> createPayment(UUID merchantId, Mono<PaymentRequest> paymentRequestMono) {
         return paymentRequestMono.flatMap(paymentRequest -> {
             Payment p = new Payment();

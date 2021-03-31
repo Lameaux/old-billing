@@ -11,11 +11,14 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
 public class PaymentHandler {
     private static final String URI_PREFIX = "/payments/";
+    private static final String PATH_PARAM_ID = "id";
+    private static final String QUERY_PARAM_MERCHANT_REFERENCE = "merchant_reference";
 
     private final PaymentService paymentService;
 
@@ -30,9 +33,9 @@ public class PaymentHandler {
     }
 
     Mono<ServerResponse> getPayment(ServerRequest serverRequest) {
-        String id = serverRequest.pathVariable("id");
+        String id = serverRequest.pathVariable(PATH_PARAM_ID);
         if (!UUIDValidator.isValid(id)) {
-            return ErrorResponse.badRequest(ErrorCode.INVALID_UUID, "id");
+            return ErrorResponse.badRequest(ErrorCode.INVALID_UUID, PATH_PARAM_ID);
         }
 
         Mono<PaymentResponse> paymentResponseMono = paymentService.getPayment(UUID.fromString(id), getMerchantId(serverRequest));
@@ -42,6 +45,20 @@ public class PaymentHandler {
                 .body(paymentResponseMono, PaymentResponse.class)
         ).switchIfEmpty(ErrorResponse.notFound(ErrorCode.NOT_FOUND, "payment"));
 
+    }
+
+    Mono<ServerResponse> getPaymentByMerchantReference(ServerRequest serverRequest) {
+        Optional<String> omr = serverRequest.queryParam(QUERY_PARAM_MERCHANT_REFERENCE);
+        if (omr.isEmpty()) {
+            return ErrorResponse.badRequest(ErrorCode.MISSING_QUERY_PARAM, QUERY_PARAM_MERCHANT_REFERENCE);
+        }
+
+        Mono<PaymentResponse> paymentResponseMono = paymentService.getPaymentByMerchantReference(getMerchantId(serverRequest), omr.get());
+
+        return paymentResponseMono.flatMap(p -> ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(paymentResponseMono, PaymentResponse.class)
+        ).switchIfEmpty(ErrorResponse.notFound(ErrorCode.NOT_FOUND, "payment"));
     }
 
     Mono<ServerResponse> createPayment(ServerRequest serverRequest) {

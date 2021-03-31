@@ -1,6 +1,5 @@
 package com.euromoby.api.payment;
 
-import com.euromoby.api.merchant.MerchantRepository;
 import com.euromoby.api.security.AuthFilter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,7 +34,34 @@ public class PaymentRouter {
 
     @Bean
     @RouterOperation(operation = @Operation(
-            operationId = "findPaymentById", summary = "Get Payment by Id", tags = {DOC_TAGS},
+            operationId = "listPayments", summary = "List all Payments", tags = {DOC_TAGS},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = PaymentResponse.class))))
+            }))
+    public RouterFunction<ServerResponse> listPaymentsRoute(PaymentHandler paymentsHandler) {
+        return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
+                .GET("", RequestPredicates.accept(MediaType.APPLICATION_JSON), paymentsHandler::listPayments)
+        ).build();
+    }
+
+    @Bean
+    @RouterOperation(operation = @Operation(
+            operationId = "findPaymentByMerchantReference", summary = "Get Payment by Merchant Reference", tags = {DOC_TAGS},
+            parameters = {@Parameter(in = ParameterIn.QUERY, name = "merchant_reference", description = "Merchant Reference")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = PaymentResponse.class)))),
+                    @ApiResponse(responseCode = "400", description = "Invalid Merchant Reference supplied"),
+                    @ApiResponse(responseCode = "404", description = "Payment not found")
+            }))
+    public RouterFunction<ServerResponse> findPaymentRoute(PaymentHandler paymentHandler) {
+        return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
+                .GET("/find_by", RequestPredicates.accept(MediaType.APPLICATION_JSON), paymentHandler::getPaymentByMerchantReference)
+        ).build();
+    }
+
+    @Bean
+    @RouterOperation(operation = @Operation(
+            operationId = "getPaymentById", summary = "Get Payment by Id", tags = {DOC_TAGS},
             parameters = {@Parameter(in = ParameterIn.PATH, name = "id", description = "Payment Id")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PaymentResponse.class))),
@@ -50,20 +76,8 @@ public class PaymentRouter {
 
     @Bean
     @RouterOperation(operation = @Operation(
-            operationId = "listPayments", summary = "List all Payments", tags = {DOC_TAGS},
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = PaymentResponse.class))))
-            }))
-    public RouterFunction<ServerResponse> listPaymentsRoute(PaymentHandler paymentsHandler) {
-        return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
-                .GET("", RequestPredicates.accept(MediaType.APPLICATION_JSON), paymentsHandler::listPayments)
-        ).build();
-    }
-
-    @Bean
-    @RouterOperation(operation = @Operation(
             operationId = "createPayment", summary = "Create a new Payment", tags = {DOC_TAGS},
-            requestBody = @RequestBody(description = "Payment", required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PaymentResponse.class))),
+            requestBody = @RequestBody(description = "Payment", required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PaymentRequest.class))),
             responses = {
                     @ApiResponse(responseCode = "201", description = "Created", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PaymentResponse.class))),
                     @ApiResponse(responseCode = "400", description = "Invalid Payment"),

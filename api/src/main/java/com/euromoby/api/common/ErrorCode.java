@@ -1,9 +1,9 @@
 package com.euromoby.api.common;
 
-import com.euromoby.api.security.AuthFilter;
-
 public enum ErrorCode {
     MISSING_HEADER("Missing header"),
+    MISSING_QUERY_PARAM("Missing query parameter"),
+    INVALID_QUERY_PARAM("Invalid query parameter"),
     INVALID_CREDENTIALS("Invalid credentials"),
     INVALID_UUID("Not a valid UUID"),
     NOT_FOUND("Record not found");

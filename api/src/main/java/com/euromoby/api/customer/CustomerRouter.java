@@ -34,6 +34,33 @@ public class CustomerRouter {
 
     @Bean
     @RouterOperation(operation = @Operation(
+            operationId = "listCustomers", summary = "List all Customers", tags = {DOC_TAGS},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = CustomerResponse.class))))
+            }))
+    public RouterFunction<ServerResponse> listCustomersRoute(CustomerHandler customerHandler) {
+        return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
+                .GET("", RequestPredicates.accept(MediaType.APPLICATION_JSON), customerHandler::listCustomers)
+        ).build();
+    }
+
+    @Bean
+    @RouterOperation(operation = @Operation(
+            operationId = "getCustomerByMerchantReference", summary = "Get Customer by Merchant Reference", tags = {DOC_TAGS},
+            parameters = {@Parameter(in = ParameterIn.QUERY, name = "merchant_reference", description = "Merchant Reference")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = CustomerResponse.class)))),
+                    @ApiResponse(responseCode = "400", description = "Invalid Merchant Reference supplied"),
+                    @ApiResponse(responseCode = "404", description = "Customer not found")
+            }))
+    public RouterFunction<ServerResponse> findCustomerRoute(CustomerHandler customerHandler) {
+        return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
+                .GET("/find_by", RequestPredicates.accept(MediaType.APPLICATION_JSON), customerHandler::getCustomerByMerchantReference)
+        ).build();
+    }
+
+    @Bean
+    @RouterOperation(operation = @Operation(
             operationId = "findCustomerById", summary = "Get Customer by Id", tags = {DOC_TAGS},
             parameters = {@Parameter(in = ParameterIn.PATH, name = "id", description = "Customer Id")},
             responses = {
@@ -49,20 +76,8 @@ public class CustomerRouter {
 
     @Bean
     @RouterOperation(operation = @Operation(
-            operationId = "listCustomers", summary = "List all Customers", tags = {DOC_TAGS},
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = CustomerResponse.class))))
-            }))
-    public RouterFunction<ServerResponse> listCustomersRoute(CustomerHandler customerHandler) {
-        return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
-                .GET("", RequestPredicates.accept(MediaType.APPLICATION_JSON), customerHandler::listCustomers)
-        ).build();
-    }
-
-    @Bean
-    @RouterOperation(operation = @Operation(
             operationId = "createCustomer", summary = "Create a new Customer", tags = {DOC_TAGS},
-            requestBody = @RequestBody(description = "Customer", required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CustomerResponse.class))),
+            requestBody = @RequestBody(description = "Customer", required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CustomerRequest.class))),
             responses = {
                     @ApiResponse(responseCode = "201", description = "Created", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CustomerResponse.class))),
                     @ApiResponse(responseCode = "400", description = "Invalid Customer"),
