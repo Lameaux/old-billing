@@ -2,12 +2,32 @@ package com.euromoby.api.customer;
 
 import com.euromoby.api.common.RouterTest;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+
 public class CustomerRouterTest extends RouterTest {
     private final String API_ROOT = "/api/v1/customers";
+
+    private CustomerService customerService;
+
+    @Autowired
+    public CustomerRouterTest(CustomerService customerService) {
+        this.customerService = customerService;
+    }
+
+    public CustomerResponse createNewCustomer() {
+        CustomerRequest customerRequest = new CustomerRequest();
+        customerRequest.setMerchantReference(UUID.randomUUID().toString());
+        Mono<CustomerResponse> response = customerService.createCustomer(
+                UUID.fromString(MERCHANT),
+                Mono.just(customerRequest)
+        );
+        return response.block();
+    }
 
     @Test
     public void testListCustomersUnauthorized() {
@@ -16,7 +36,11 @@ public class CustomerRouterTest extends RouterTest {
 
     @Test
     public void testListCustomers() {
-        authorizedGet(API_ROOT).exchange().expectStatus().isOk();
+        CustomerResponse newCustomer = createNewCustomer();
+
+        authorizedGet(API_ROOT).exchange()
+                .expectStatus().isOk()
+                .expectBodyList(CustomerResponse.class).contains(newCustomer);
     }
 
     @Test
@@ -25,8 +49,17 @@ public class CustomerRouterTest extends RouterTest {
     }
 
     @Test
-    public void testGetCustomer() {
+    public void testGetCustomerNotFound() {
         authorizedGet(API_ROOT + "/{id}", UUID.randomUUID()).exchange().expectStatus().isNotFound();
+    }
+
+    @Test
+    public void testGetCustomer() {
+        CustomerResponse newCustomer = createNewCustomer();
+
+        authorizedGet(API_ROOT + "/{id}", newCustomer.getId()).exchange()
+                .expectStatus().isOk()
+                .expectBody(CustomerResponse.class).isEqualTo(newCustomer);
     }
 
     @Test
@@ -40,8 +73,18 @@ public class CustomerRouterTest extends RouterTest {
     }
 
     @Test
+    public void testFindCustomerNotFound() {
+        authorizedGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", UUID.randomUUID()).exchange()
+                .expectStatus().isNotFound();
+    }
+
+    @Test
     public void testFindCustomer() {
-        authorizedGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", UUID.randomUUID()).exchange().expectStatus().isNotFound();
+        CustomerResponse newCustomer = createNewCustomer();
+
+        authorizedGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", newCustomer.getMerchantReference()).exchange()
+                .expectStatus().isOk()
+                .expectBody(CustomerResponse.class).isEqualTo(newCustomer);
     }
 
     @Test
@@ -51,9 +94,12 @@ public class CustomerRouterTest extends RouterTest {
 
     @Test
     public void testCreateCustomer() {
-        var customerDto = new CustomerRequest();
-        authorizedPost(API_ROOT).body(Mono.just(customerDto), CustomerRequest.class).exchange().expectStatus().isCreated();
+        var customerRequest = new CustomerRequest();
+        customerRequest.setMerchantReference(UUID.randomUUID().toString());
+
+        authorizedPost(API_ROOT).body(Mono.just(customerRequest), CustomerRequest.class).exchange()
+                .expectStatus().isCreated()
+                .expectBody(CustomerResponse.class)
+                .value(CustomerResponse::getMerchantReference, equalTo(customerRequest.getMerchantReference()));
     }
-
-
 }

@@ -38,4 +38,10 @@ public class ErrorResponse {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(of(errorCode, context)), ErrorResponse.class);
     }
+
+    public static Mono<ServerResponse> conflict(ErrorCode errorCode, String context) {
+        return ServerResponse.status(HttpStatus.CONFLICT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(of(errorCode, context)), ErrorResponse.class);
+    }
 }

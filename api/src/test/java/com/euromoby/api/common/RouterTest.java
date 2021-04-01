@@ -13,8 +13,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 public class RouterTest {
-    private final String MERCHANT = "63997f34-66d5-4e49-82a3-065dca2ff149";
-    private final String SECRET = "065dca2ff149";
+    public static final String MERCHANT = "63997f34-66d5-4e49-82a3-065dca2ff149";
+    private static final String SECRET = "065dca2ff149";
 
     @Autowired
     protected WebTestClient webTestClient;

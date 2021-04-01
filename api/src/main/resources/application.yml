@@ -1,3 +1,6 @@
+logging:
+  level:
+    org.springframework.r2dbc: DEBUG
 server:
   servlet:
     context-path: /
@@ -8,16 +11,18 @@ server:
   http2:
     enabled: true
 spring:
+  jackson:
+    property-naming-strategy: SNAKE_CASE
   h2:
     console:
       enabled: true
       path: /h2-console
   r2dbc:
-    url: r2dbc:h2:mem:///euromoby?options=DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: r2dbc:h2:mem:///euromoby?options=DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
     username: sa
     password:
   flyway:
-    url: jdbc:h2:mem:euromoby;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:euromoby;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
     user: sa
     password:
 springdoc:
