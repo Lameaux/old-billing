@@ -13,8 +13,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 public class RouterTest {
-    public static final String MERCHANT = "63997f34-66d5-4e49-82a3-065dca2ff149";
-    private static final String SECRET = "065dca2ff149";
+    protected static final String MERCHANT = "63997f34-66d5-4e49-82a3-065dca2ff149";
+    private static final String API_KEY = "065dca2ff149";
 
     @Autowired
     protected WebTestClient webTestClient;
@@ -22,13 +22,13 @@ public class RouterTest {
     protected WebTestClient.RequestHeadersSpec authorizedGet(String uri, Object... uriVariables) {
         return webTestClient.get().uri(uri, uriVariables)
                 .header(AuthFilter.HEADER_MERCHANT, MERCHANT)
-                .header(AuthFilter.HEADER_SECRET, SECRET);
+                .header(AuthFilter.HEADER_API_KEY, API_KEY);
     }
 
     protected WebTestClient.RequestBodySpec authorizedPost(String uri, Object... uriVariables) {
         return webTestClient.post().uri(uri, uriVariables)
                 .header(AuthFilter.HEADER_MERCHANT, MERCHANT)
-                .header(AuthFilter.HEADER_SECRET, SECRET)
+                .header(AuthFilter.HEADER_API_KEY, API_KEY)
                 .contentType(MediaType.APPLICATION_JSON);
     }
 }

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springdoc.core.annotations.RouterOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -37,7 +38,13 @@ public class CustomerRouter {
             operationId = "listCustomers", summary = "List all Customers", tags = {DOC_TAGS},
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = CustomerResponse.class))))
-            }))
+            },
+            security = {
+                    @SecurityRequirement(name = AuthFilter.HEADER_MERCHANT),
+                    @SecurityRequirement(name = AuthFilter.HEADER_API_KEY),
+                    @SecurityRequirement(name = AuthFilter.BEARER)
+            }
+    ))
     public RouterFunction<ServerResponse> listCustomersRoute(CustomerHandler customerHandler) {
         return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
                 .GET("", RequestPredicates.accept(MediaType.APPLICATION_JSON), customerHandler::listCustomers)
@@ -52,7 +59,13 @@ public class CustomerRouter {
                     @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = CustomerResponse.class)))),
                     @ApiResponse(responseCode = "400", description = "Invalid Merchant Reference supplied"),
                     @ApiResponse(responseCode = "404", description = "Customer not found")
-            }))
+            },
+            security = {
+                    @SecurityRequirement(name = AuthFilter.HEADER_MERCHANT),
+                    @SecurityRequirement(name = AuthFilter.HEADER_API_KEY),
+                    @SecurityRequirement(name = AuthFilter.BEARER)
+            }
+    ))
     public RouterFunction<ServerResponse> findCustomerRoute(CustomerHandler customerHandler) {
         return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
                 .GET("/find_by", RequestPredicates.accept(MediaType.APPLICATION_JSON), customerHandler::getCustomerByMerchantReference)
@@ -67,7 +80,13 @@ public class CustomerRouter {
                     @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CustomerResponse.class))),
                     @ApiResponse(responseCode = "400", description = "Invalid Customer Id supplied"),
                     @ApiResponse(responseCode = "404", description = "Customer not found")
-            }))
+            },
+            security = {
+                    @SecurityRequirement(name = AuthFilter.HEADER_MERCHANT),
+                    @SecurityRequirement(name = AuthFilter.HEADER_API_KEY),
+                    @SecurityRequirement(name = AuthFilter.BEARER)
+            }
+    ))
     public RouterFunction<ServerResponse> getCustomerRoute(CustomerHandler customerHandler) {
         return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
                 .GET("/{id}", RequestPredicates.accept(MediaType.APPLICATION_JSON), customerHandler::getCustomer)
@@ -83,7 +102,13 @@ public class CustomerRouter {
                     @ApiResponse(responseCode = "400", description = "Invalid Customer"),
                     @ApiResponse(responseCode = "409", description = "Duplicate Customer"),
                     @ApiResponse(responseCode = "500", description = "Server Error")
-            }))
+            },
+            security = {
+                    @SecurityRequirement(name = AuthFilter.HEADER_MERCHANT),
+                    @SecurityRequirement(name = AuthFilter.HEADER_API_KEY),
+                    @SecurityRequirement(name = AuthFilter.BEARER)
+            }
+    ))
     public RouterFunction<ServerResponse> createCustomerRoute(CustomerHandler customerHandler) {
         return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
                 .POST("", RequestPredicates.accept(MediaType.APPLICATION_JSON), customerHandler::createCustomer)

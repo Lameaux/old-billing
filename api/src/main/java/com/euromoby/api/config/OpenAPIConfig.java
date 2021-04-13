@@ -21,8 +21,9 @@ public class OpenAPIConfig {
         contact.setName("EUROMOBY");
         return new OpenAPI().components(
                 new Components()
-                        .addSecuritySchemes(AuthFilter.HEADER_MERCHANT, new SecurityScheme().type(SecurityScheme.Type.APIKEY))
-                        .addSecuritySchemes(AuthFilter.HEADER_SECRET, new SecurityScheme().type(SecurityScheme.Type.APIKEY))
+                        .addSecuritySchemes(AuthFilter.HEADER_MERCHANT, new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER).name(AuthFilter.HEADER_MERCHANT))
+                        .addSecuritySchemes(AuthFilter.HEADER_API_KEY, new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER).name(AuthFilter.HEADER_API_KEY))
+                        .addSecuritySchemes(AuthFilter.BEARER, new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme(AuthFilter.BEARER).bearerFormat("JWT"))
         ).info(new Info()
                 .title("EUROMOBY Subscription API")
                 .contact(contact)

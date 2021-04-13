@@ -23,7 +23,9 @@ import java.util.function.Predicate;
 public class AuthFilter implements HandlerFilterFunction<ServerResponse, ServerResponse> {
     public static final String ATTRIBUTE_MERCHANT = "merchant";
     public static final String HEADER_MERCHANT = "x-merchant";
-    public static final String HEADER_SECRET = "x-secret";
+    public static final String HEADER_API_KEY = "x-api-key";
+    public static final String HEADER_AUTH = "Authorization";
+    public static final String BEARER = "Bearer";
 
     private MerchantRepository merchantRepository;
 
@@ -47,14 +49,14 @@ public class AuthFilter implements HandlerFilterFunction<ServerResponse, ServerR
             return ErrorResponse.unauthorized(ErrorCode.MISSING_HEADER, HEADER_MERCHANT);
         }
 
-        String secretHeader = request.headers().firstHeader(HEADER_SECRET);
+        String secretHeader = request.headers().firstHeader(HEADER_API_KEY);
         if (!StringUtils.hasText(secretHeader)) {
-            return ErrorResponse.unauthorized(ErrorCode.MISSING_HEADER, HEADER_SECRET);
+            return ErrorResponse.unauthorized(ErrorCode.MISSING_HEADER, HEADER_API_KEY);
         }
 
         Mono<Merchant> merchantMono = merchantRepository.findById(UUID.fromString(merchantHeader));
 
-        Predicate<Merchant> validateMerchant = m -> m.isActive() && BCrypt.checkpw(secretHeader, m.getSecret());
+        Predicate<Merchant> validateMerchant = m -> m.isActive() && BCrypt.checkpw(secretHeader, m.getApiKey());
 
         return merchantMono.filter(validateMerchant).flatMap(merchant -> {
             request.attributes().put(ATTRIBUTE_MERCHANT, merchant);
