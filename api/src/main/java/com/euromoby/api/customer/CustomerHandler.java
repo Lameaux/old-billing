@@ -4,6 +4,7 @@ import com.euromoby.api.common.ErrorCode;
 import com.euromoby.api.common.ErrorResponse;
 import com.euromoby.api.common.UUIDValidator;
 import com.euromoby.api.security.AuthFilter;
+import com.euromoby.api.security.IsOperator;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,7 @@ public class CustomerHandler {
         this.customerService = customerService;
     }
 
+    @IsOperator
     Mono<ServerResponse> listCustomers(ServerRequest serverRequest) {
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)

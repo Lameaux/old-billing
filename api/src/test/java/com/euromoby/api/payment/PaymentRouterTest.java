@@ -23,7 +23,7 @@ public class PaymentRouterTest extends RouterTest {
         PaymentRequest paymentRequest = new PaymentRequest();
         paymentRequest.setMerchantReference(UUID.randomUUID().toString());
         Mono<PaymentResponse> response = paymentService.createPayment(
-                UUID.fromString(MERCHANT),
+                junitMerchant.getId(),
                 Mono.just(paymentRequest)
         );
         return response.block();

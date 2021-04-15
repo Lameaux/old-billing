@@ -23,7 +23,7 @@ public class CustomerRouterTest extends RouterTest {
         CustomerRequest customerRequest = new CustomerRequest();
         customerRequest.setMerchantReference(UUID.randomUUID().toString());
         Mono<CustomerResponse> response = customerService.createCustomer(
-                UUID.fromString(MERCHANT),
+                junitMerchant.getId(),
                 Mono.just(customerRequest)
         );
         return response.block();

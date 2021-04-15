@@ -1,12 +1,16 @@
 package com.euromoby.api.config;
 
 import com.euromoby.api.security.AuthFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.core.converter.ModelConverters;
+import io.swagger.v3.core.jackson.ModelResolver;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.GroupedOpenApi;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,11 +18,17 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class OpenAPIConfig {
+    @Autowired
+    ObjectMapper objectMapper;
+
     @Bean
     public OpenAPI customOpenAPI() {
         Contact contact = new Contact();
         contact.setUrl("http://euromoby.com");
         contact.setName("EUROMOBY");
+
+        ModelConverters.getInstance().addConverter(new ModelResolver(objectMapper));
+
         return new OpenAPI().components(
                 new Components()
                         .addSecuritySchemes(AuthFilter.HEADER_MERCHANT, new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER).name(AuthFilter.HEADER_MERCHANT))
@@ -42,5 +52,11 @@ public class OpenAPIConfig {
     public GroupedOpenApi customersOpenApi() {
         String[] paths = {"/api/v1/customers/**"};
         return GroupedOpenApi.builder().group("customers").pathsToMatch(paths).build();
+    }
+
+    @Bean
+    public GroupedOpenApi authOpenApi() {
+        String[] paths = {"/api/v1/auth/**"};
+        return GroupedOpenApi.builder().group("auth").pathsToMatch(paths).build();
     }
 }

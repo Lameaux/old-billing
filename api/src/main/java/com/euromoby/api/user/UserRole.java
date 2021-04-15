@@ -1,5 +1,5 @@
 package com.euromoby.api.user;
 
 public enum UserRole {
-    ADMIN, OPERATOR;
+    ROLE_USER, ROLE_ADMIN;
 }
