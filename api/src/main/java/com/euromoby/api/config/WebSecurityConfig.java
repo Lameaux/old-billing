@@ -15,9 +15,6 @@ import reactor.core.publisher.Mono;
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 public class WebSecurityConfig {
-    private AuthenticationManager authenticationManager;
-    private SecurityContextRepository securityContextRepository;
-
     private static final String[] SWAGGER_PATTERNS = new String[]{
             "/api-definitions/**",
             "/webjars/**",
@@ -27,6 +24,8 @@ public class WebSecurityConfig {
 //            "/configuration/security",
 
     };
+    private AuthenticationManager authenticationManager;
+    private SecurityContextRepository securityContextRepository;
 
     @Autowired
     public WebSecurityConfig(AuthenticationManager authenticationManager, SecurityContextRepository securityContextRepository) {

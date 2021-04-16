@@ -3,7 +3,7 @@ package com.euromoby.api.payment;
 import com.euromoby.api.common.ErrorCode;
 import com.euromoby.api.common.ErrorResponse;
 import com.euromoby.api.common.UUIDValidator;
-import com.euromoby.api.security.AuthFilter;
+import com.euromoby.api.security.MerchantFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
@@ -77,6 +77,6 @@ public class PaymentHandler {
     }
 
     private UUID getMerchantId(ServerRequest serverRequest) {
-        return AuthFilter.getMerchantId(serverRequest);
+        return MerchantFilter.getMerchantId(serverRequest);
     }
 }

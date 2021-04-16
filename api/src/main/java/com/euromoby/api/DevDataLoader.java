@@ -24,11 +24,11 @@ public class DevDataLoader implements ApplicationListener<ContextRefreshedEvent>
     protected UserMerchantRepository userMerchantRepository;
 
     @Override
-    public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent){
+    public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
         loadData();
     }
 
-    protected void loadData() {
+    private void loadData() {
         createUsers();
         createMerchants();
     }

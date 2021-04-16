@@ -3,17 +3,18 @@ package com.euromoby.api.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 @Component
 public class SecurityContextRepository implements ServerSecurityContextRepository {
+
 
     private AuthenticationManager authenticationManager;
 
@@ -30,14 +31,23 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
     @Override
     public Mono<SecurityContext> load(ServerWebExchange swe) {
         ServerHttpRequest request = swe.getRequest();
-        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return Mono.empty();
+        String merchant = request.getHeaders().getFirst(SecurityConstants.HEADER_MERCHANT);
+
+        String authorization = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
+            var jwt = authorization.substring(7);
+            Authentication auth = new JwtAuthentication(jwt, merchant);
+            return this.authenticationManager.authenticate(auth).map(SecurityContextImpl::new);
         }
 
-        String authToken = authHeader.substring(7);
-        Authentication auth = new UsernamePasswordAuthenticationToken(authToken, authToken);
-        return this.authenticationManager.authenticate(auth).map(SecurityContextImpl::new);
+        String apiKey = request.getHeaders().getFirst(SecurityConstants.HEADER_API_KEY);
+
+        if (StringUtils.hasText(merchant) && StringUtils.hasText(apiKey)) {
+            Authentication auth = new ApiKeyAuthentication(apiKey, merchant);
+            return this.authenticationManager.authenticate(auth).map(SecurityContextImpl::new);
+        }
+
+        return Mono.empty();
     }
 }

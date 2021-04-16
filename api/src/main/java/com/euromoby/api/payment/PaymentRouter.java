@@ -1,6 +1,7 @@
 package com.euromoby.api.payment;
 
-import com.euromoby.api.security.AuthFilter;
+import com.euromoby.api.security.MerchantFilter;
+import com.euromoby.api.security.SecurityConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -26,10 +27,10 @@ public class PaymentRouter {
     private static final String API_ROOT = "/api/v1/payments";
     private static final String DOC_TAGS = "Payments";
 
-    private final AuthFilter authFilter;
+    private final MerchantFilter authFilter;
 
     @Autowired
-    public PaymentRouter(AuthFilter authFilter) {
+    public PaymentRouter(MerchantFilter authFilter) {
         this.authFilter = authFilter;
     }
 
@@ -40,9 +41,9 @@ public class PaymentRouter {
                     @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = PaymentResponse.class))))
             },
             security = {
-                    @SecurityRequirement(name = AuthFilter.HEADER_MERCHANT),
-                    @SecurityRequirement(name = AuthFilter.HEADER_API_KEY),
-                    @SecurityRequirement(name = AuthFilter.BEARER)
+                    @SecurityRequirement(name = SecurityConstants.HEADER_MERCHANT),
+                    @SecurityRequirement(name = SecurityConstants.HEADER_API_KEY),
+                    @SecurityRequirement(name = SecurityConstants.BEARER)
             }))
     public RouterFunction<ServerResponse> listPaymentsRoute(PaymentHandler paymentsHandler) {
         return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
@@ -60,9 +61,9 @@ public class PaymentRouter {
                     @ApiResponse(responseCode = "404", description = "Payment not found")
             },
             security = {
-                    @SecurityRequirement(name = AuthFilter.HEADER_MERCHANT),
-                    @SecurityRequirement(name = AuthFilter.HEADER_API_KEY),
-                    @SecurityRequirement(name = AuthFilter.BEARER)
+                    @SecurityRequirement(name = SecurityConstants.HEADER_MERCHANT),
+                    @SecurityRequirement(name = SecurityConstants.HEADER_API_KEY),
+                    @SecurityRequirement(name = SecurityConstants.BEARER)
             }))
     public RouterFunction<ServerResponse> findPaymentRoute(PaymentHandler paymentHandler) {
         return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
@@ -80,9 +81,9 @@ public class PaymentRouter {
                     @ApiResponse(responseCode = "404", description = "Payment not found")
             },
             security = {
-                    @SecurityRequirement(name = AuthFilter.HEADER_MERCHANT),
-                    @SecurityRequirement(name = AuthFilter.HEADER_API_KEY),
-                    @SecurityRequirement(name = AuthFilter.BEARER)
+                    @SecurityRequirement(name = SecurityConstants.HEADER_MERCHANT),
+                    @SecurityRequirement(name = SecurityConstants.HEADER_API_KEY),
+                    @SecurityRequirement(name = SecurityConstants.BEARER)
             }))
     public RouterFunction<ServerResponse> getPaymentRoute(PaymentHandler paymentsHandler) {
         return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
@@ -101,9 +102,9 @@ public class PaymentRouter {
                     @ApiResponse(responseCode = "500", description = "Server Error")
             },
             security = {
-                    @SecurityRequirement(name = AuthFilter.HEADER_MERCHANT),
-                    @SecurityRequirement(name = AuthFilter.HEADER_API_KEY),
-                    @SecurityRequirement(name = AuthFilter.BEARER)
+                    @SecurityRequirement(name = SecurityConstants.HEADER_MERCHANT),
+                    @SecurityRequirement(name = SecurityConstants.HEADER_API_KEY),
+                    @SecurityRequirement(name = SecurityConstants.BEARER)
             }))
     public RouterFunction<ServerResponse> createPaymentRoute(PaymentHandler paymentHandler) {
         return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)

@@ -1,5 +1,6 @@
 package com.euromoby.api.security;
 
+import com.euromoby.api.user.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -11,6 +12,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class JWTUtil {
@@ -24,19 +26,28 @@ public class JWTUtil {
     private Key key;
 
     @PostConstruct
-    public void init(){
+    public void init() {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public Claims getAllClaimsFromToken(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+    String generateToken(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("email", user.getEmail());
+        claims.put("name", user.getName());
+        claims.put("admin", user.isAdmin());
+        return doGenerateToken(claims, user.getId().toString());
     }
 
-    public String getUsernameFromToken(String token) {
-        return getAllClaimsFromToken(token).getSubject();
+    UUID getUserIdFromToken(String token) {
+        return UUID.fromString(getAllClaimsFromToken(token).getSubject());
     }
 
-    public Date getExpirationDateFromToken(String token) {
+
+    Boolean validateToken(String token) {
+        return !isTokenExpired(token);
+    }
+
+    private Date getExpirationDateFromToken(String token) {
         return getAllClaimsFromToken(token).getExpiration();
     }
 
@@ -45,13 +56,11 @@ public class JWTUtil {
         return expiration.before(new Date());
     }
 
-    public String generateToken(AuthUserDetails user) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("role", user.getRoles());
-        return doGenerateToken(claims, user.getUsername());
+    private Claims getAllClaimsFromToken(String token) {
+        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
     }
 
-    private String doGenerateToken(Map<String, Object> claims, String username) {
+    private String doGenerateToken(Map<String, Object> claims, String subject) {
         long expirationTimeLong = Long.parseLong(expirationTime); //in second
 
         final Date createdDate = new Date();
@@ -59,14 +68,10 @@ public class JWTUtil {
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(username)
+                .setSubject(subject)
                 .setIssuedAt(createdDate)
                 .setExpiration(expirationDate)
                 .signWith(key)
                 .compact();
-    }
-
-    public Boolean validateToken(String token) {
-        return !isTokenExpired(token);
     }
 }

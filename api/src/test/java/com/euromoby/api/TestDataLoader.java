@@ -9,8 +9,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
 @Profile("test")
 @Component
 public class TestDataLoader implements ApplicationListener<ContextRefreshedEvent> {
@@ -19,14 +17,16 @@ public class TestDataLoader implements ApplicationListener<ContextRefreshedEvent
     protected MerchantRepository merchantRepository;
 
     @Override
-    public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent){
+    public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
         createMerchant();
     }
 
     private void createMerchant() {
+        merchantRepository.deleteAll().block();
+
         Merchant merchant = new Merchant();
         merchant.setName("junit");
-        merchant.setApiKey(BCrypt.hashpw(UUID.randomUUID().toString(), BCrypt.gensalt()));
+        merchant.setApiKey(BCrypt.hashpw("junit-api-key", BCrypt.gensalt()));
         merchant.setEnv("test");
         merchant.setActive(true);
         merchantRepository.save(merchant).block();

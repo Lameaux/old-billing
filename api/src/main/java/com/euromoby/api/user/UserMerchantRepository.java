@@ -8,4 +8,6 @@ import java.util.UUID;
 
 public interface UserMerchantRepository extends ReactiveCrudRepository<UserMerchant, UUID> {
     Flux<UserMerchant> findAllByUserId(UUID userId);
+
+    Mono<UserMerchant> findByUserIdAndMerchantId(UUID userId, UUID merchantId);
 }

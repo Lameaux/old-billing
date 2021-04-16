@@ -1,9 +1,6 @@
 package com.euromoby.api.user;
 
-import com.euromoby.api.payment.Payment;
-import com.euromoby.api.payment.PaymentRepository;
 import com.euromoby.api.payment.PaymentRequest;
-import com.euromoby.api.payment.PaymentResponse;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 

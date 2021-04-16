@@ -5,7 +5,6 @@ import com.euromoby.api.common.ErrorResponse;
 import com.euromoby.api.merchant.Merchant;
 import com.euromoby.api.merchant.MerchantRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -16,21 +15,16 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
-import java.util.function.Predicate;
 
 @Slf4j
 @Component
-public class AuthFilter implements HandlerFilterFunction<ServerResponse, ServerResponse> {
-    public static final String ATTRIBUTE_MERCHANT = "merchant";
-    public static final String HEADER_MERCHANT = "x-merchant";
-    public static final String HEADER_API_KEY = "x-api-key";
-    public static final String HEADER_AUTH = "Authorization";
-    public static final String BEARER = "Bearer";
+public class MerchantFilter implements HandlerFilterFunction<ServerResponse, ServerResponse> {
+    private static final String ATTRIBUTE_MERCHANT = "merchant";
 
     private MerchantRepository merchantRepository;
 
     @Autowired
-    public AuthFilter(MerchantRepository merchantRepository) {
+    public MerchantFilter(MerchantRepository merchantRepository) {
         this.merchantRepository = merchantRepository;
     }
 
@@ -44,23 +38,16 @@ public class AuthFilter implements HandlerFilterFunction<ServerResponse, ServerR
 
     @Override
     public Mono<ServerResponse> filter(ServerRequest request, HandlerFunction<ServerResponse> next) {
-        String merchantHeader = request.headers().firstHeader(HEADER_MERCHANT);
+        String merchantHeader = request.headers().firstHeader(SecurityConstants.HEADER_MERCHANT);
         if (!StringUtils.hasText(merchantHeader)) {
-            return ErrorResponse.unauthorized(ErrorCode.MISSING_HEADER, HEADER_MERCHANT);
-        }
-
-        String secretHeader = request.headers().firstHeader(HEADER_API_KEY);
-        if (!StringUtils.hasText(secretHeader)) {
-            return ErrorResponse.unauthorized(ErrorCode.MISSING_HEADER, HEADER_API_KEY);
+            return next.handle(request);
         }
 
         Mono<Merchant> merchantMono = merchantRepository.findById(UUID.fromString(merchantHeader));
 
-        Predicate<Merchant> validateMerchant = m -> m.isActive() && BCrypt.checkpw(secretHeader, m.getApiKey());
-
-        return merchantMono.filter(validateMerchant).flatMap(merchant -> {
+        return merchantMono.flatMap(merchant -> {
             request.attributes().put(ATTRIBUTE_MERCHANT, merchant);
             return next.handle(request);
-        }).switchIfEmpty(ErrorResponse.unauthorized(ErrorCode.INVALID_CREDENTIALS, HEADER_MERCHANT));
+        }).switchIfEmpty(ErrorResponse.unauthorized(ErrorCode.INVALID_CREDENTIALS, SecurityConstants.HEADER_MERCHANT));
     }
 }

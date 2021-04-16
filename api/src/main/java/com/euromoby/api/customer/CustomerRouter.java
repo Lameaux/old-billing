@@ -1,7 +1,7 @@
 package com.euromoby.api.customer;
 
-import com.euromoby.api.security.AuthFilter;
-import com.euromoby.api.security.IsOperator;
+import com.euromoby.api.security.MerchantFilter;
+import com.euromoby.api.security.SecurityConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
@@ -28,10 +27,10 @@ public class CustomerRouter {
     private static final String API_ROOT = "/api/v1/customers";
     private static final String DOC_TAGS = "Customers";
 
-    private final AuthFilter authFilter;
+    private final MerchantFilter authFilter;
 
     @Autowired
-    public CustomerRouter(AuthFilter authFilter) {
+    public CustomerRouter(MerchantFilter authFilter) {
         this.authFilter = authFilter;
     }
 
@@ -42,9 +41,9 @@ public class CustomerRouter {
                     @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = CustomerResponse.class))))
             },
             security = {
-                    @SecurityRequirement(name = AuthFilter.HEADER_MERCHANT),
-                    @SecurityRequirement(name = AuthFilter.HEADER_API_KEY),
-                    @SecurityRequirement(name = AuthFilter.BEARER)
+                    @SecurityRequirement(name = SecurityConstants.HEADER_MERCHANT),
+                    @SecurityRequirement(name = SecurityConstants.HEADER_API_KEY),
+                    @SecurityRequirement(name = SecurityConstants.BEARER)
             }
     ))
     public RouterFunction<ServerResponse> listCustomersRoute(CustomerHandler customerHandler) {
@@ -63,9 +62,9 @@ public class CustomerRouter {
                     @ApiResponse(responseCode = "404", description = "Customer not found")
             },
             security = {
-                    @SecurityRequirement(name = AuthFilter.HEADER_MERCHANT),
-                    @SecurityRequirement(name = AuthFilter.HEADER_API_KEY),
-                    @SecurityRequirement(name = AuthFilter.BEARER)
+                    @SecurityRequirement(name = SecurityConstants.HEADER_MERCHANT),
+                    @SecurityRequirement(name = SecurityConstants.HEADER_API_KEY),
+                    @SecurityRequirement(name = SecurityConstants.BEARER)
             }
     ))
     public RouterFunction<ServerResponse> findCustomerRoute(CustomerHandler customerHandler) {
@@ -84,9 +83,9 @@ public class CustomerRouter {
                     @ApiResponse(responseCode = "404", description = "Customer not found")
             },
             security = {
-                    @SecurityRequirement(name = AuthFilter.HEADER_MERCHANT),
-                    @SecurityRequirement(name = AuthFilter.HEADER_API_KEY),
-                    @SecurityRequirement(name = AuthFilter.BEARER)
+                    @SecurityRequirement(name = SecurityConstants.HEADER_MERCHANT),
+                    @SecurityRequirement(name = SecurityConstants.HEADER_API_KEY),
+                    @SecurityRequirement(name = SecurityConstants.BEARER)
             }
     ))
     public RouterFunction<ServerResponse> getCustomerRoute(CustomerHandler customerHandler) {
@@ -106,9 +105,9 @@ public class CustomerRouter {
                     @ApiResponse(responseCode = "500", description = "Server Error")
             },
             security = {
-                    @SecurityRequirement(name = AuthFilter.HEADER_MERCHANT),
-                    @SecurityRequirement(name = AuthFilter.HEADER_API_KEY),
-                    @SecurityRequirement(name = AuthFilter.BEARER)
+                    @SecurityRequirement(name = SecurityConstants.HEADER_MERCHANT),
+                    @SecurityRequirement(name = SecurityConstants.HEADER_API_KEY),
+                    @SecurityRequirement(name = SecurityConstants.BEARER)
             }
     ))
     public RouterFunction<ServerResponse> createCustomerRoute(CustomerHandler customerHandler) {
