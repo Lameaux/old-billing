@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS customers
     merchant_id        UUID      NOT NULL,
     merchant_reference varchar(255),
     email              varchar(255),
+    name               varchar(255),
     msisdn             varchar(15),
     created_at         timestamp NOT NULL,
     updated_at         timestamp NOT NULL

@@ -9,3 +9,6 @@ CREATE TABLE IF NOT EXISTS users_merchants
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS users_merchants_unique_idx ON users_merchants (user_id, merchant_id);
+
+CREATE INDEX IF NOT EXISTS users_merchants_merchant_id_idx ON users_merchants (merchant_id);
+

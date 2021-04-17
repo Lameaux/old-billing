@@ -5,56 +5,69 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 
-public class PaymentRouterTest extends RouterTest {
+class PaymentRouterTest extends RouterTest {
     private final String API_ROOT = "/api/v1/payments";
 
     private PaymentService paymentService;
 
     @Autowired
-    public PaymentRouterTest(PaymentService paymentService) {
+    PaymentRouterTest(PaymentService paymentService) {
         this.paymentService = paymentService;
     }
 
-    public PaymentResponse createNewPayment() {
+    PaymentResponse createNewPayment() {
         PaymentRequest paymentRequest = new PaymentRequest();
         paymentRequest.setMerchantReference(UUID.randomUUID().toString());
+        paymentRequest.setCurrency("EUR");
+        paymentRequest.setNetAmount(new BigDecimal("1.00"));
+        paymentRequest.setVatAmount(new BigDecimal("0.00"));
+        paymentRequest.setVatRate(new BigDecimal("0.00"));
+        paymentRequest.setTotalAmount(new BigDecimal("1.00"));
+
         Mono<PaymentResponse> response = paymentService.createPayment(
-                junitMerchant.getId(),
+                getJUnitMerchantId(),
                 Mono.just(paymentRequest)
         );
         return response.block();
     }
 
     @Test
-    public void testListPaymentsUnauthorized() {
+    void testListPaymentsUnauthorized() {
         webTestClient.get().uri(API_ROOT).exchange().expectStatus().isUnauthorized();
     }
 
     @Test
-    public void testListPayments() {
+    void testListPayments() {
         PaymentResponse newPayment = createNewPayment();
 
         authorizedGet(API_ROOT).exchange()
                 .expectStatus().isOk()
-                .expectBodyList(PaymentResponse.class).contains(newPayment);
+                .expectBodyList(PaymentResponse.class)
+                .value(list -> {
+                    assertThat(list.stream().anyMatch(
+                            p -> p.equals(newPayment)
+                    ));
+                });
     }
 
     @Test
-    public void testGetPaymentUnauthorized() {
+    void testGetPaymentUnauthorized() {
         webTestClient.get().uri(API_ROOT + "/{id}", UUID.randomUUID()).exchange().expectStatus().isUnauthorized();
     }
 
     @Test
-    public void testGetPaymentNotFound() {
+    void testGetPaymentNotFound() {
         authorizedGet(API_ROOT + "/{id}", UUID.randomUUID()).exchange().expectStatus().isNotFound();
     }
 
     @Test
-    public void testGetPayment() {
+    void testGetPayment() {
         PaymentResponse newPayment = createNewPayment();
 
         authorizedGet(API_ROOT + "/{id}", newPayment.getId()).exchange()
@@ -63,22 +76,22 @@ public class PaymentRouterTest extends RouterTest {
     }
 
     @Test
-    public void testFindPaymentUnauthorized() {
+    void testFindPaymentUnauthorized() {
         webTestClient.get().uri(API_ROOT + "/find_by", UUID.randomUUID()).exchange().expectStatus().isUnauthorized();
     }
 
     @Test
-    public void testFindPaymentBadRequst() {
+    void testFindPaymentBadRequst() {
         authorizedGet(API_ROOT + "/find_by", UUID.randomUUID()).exchange().expectStatus().isBadRequest();
     }
 
     @Test
-    public void testFindPaymentNotFound() {
+    void testFindPaymentNotFound() {
         authorizedGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", UUID.randomUUID()).exchange().expectStatus().isNotFound();
     }
 
     @Test
-    public void testFindPayment() {
+    void testFindPayment() {
         PaymentResponse newPayment = createNewPayment();
 
         authorizedGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", newPayment.getMerchantReference()).exchange()
@@ -87,14 +100,16 @@ public class PaymentRouterTest extends RouterTest {
     }
 
     @Test
-    public void testCreatePaymentUnauthorized() {
+    void testCreatePaymentUnauthorized() {
         webTestClient.post().uri(API_ROOT).exchange().expectStatus().isUnauthorized();
     }
 
     @Test
-    public void testCreatePayment() {
+    void testCreatePayment() {
         var paymentRequest = new PaymentRequest();
         paymentRequest.setMerchantReference(UUID.randomUUID().toString());
+        paymentRequest.setCurrency("EUR");
+        paymentRequest.setTotalAmount(new BigDecimal("1.00"));
 
         authorizedPost(API_ROOT).body(Mono.just(paymentRequest), PaymentRequest.class).exchange()
                 .expectStatus().isCreated()

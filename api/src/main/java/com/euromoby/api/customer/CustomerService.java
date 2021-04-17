@@ -15,6 +15,7 @@ public class CustomerService {
         dto.setMerchantReference(c.getMerchantReference());
         dto.setEmail(c.getEmail());
         dto.setMsisdn(c.getMsisdn());
+        dto.setName(c.getName());
         dto.setCreatedAt(c.getCreatedAt());
         dto.setUpdatedAt(c.getUpdatedAt());
         return dto;
@@ -44,6 +45,7 @@ public class CustomerService {
             c.setMerchantReference(customerRequest.getMerchantReference());
             c.setEmail(customerRequest.getEmail());
             c.setMsisdn(customerRequest.getMsisdn());
+            c.setName(customerRequest.getName());
             return customerRepository.save(c).map(TO_DTO);
         });
     }

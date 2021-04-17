@@ -26,6 +26,7 @@ public class AuthHandler {
         this.userRepository = userRepository;
     }
 
+    @IsAnonymous
     Mono<ServerResponse> authenticate(ServerRequest serverRequest) {
         Mono<AuthRequest> authRequestMono = serverRequest.bodyToMono(AuthRequest.class);
 
@@ -46,6 +47,7 @@ public class AuthHandler {
         ).switchIfEmpty(ErrorResponse.unauthorized(ErrorCode.INVALID_CREDENTIALS, EMAIL_PASSWORD));
     }
 
+    @IsUser
     Mono<ServerResponse> refresh(ServerRequest serverRequest) {
         return ErrorResponse.unauthorized(ErrorCode.INVALID_CREDENTIALS, REFRESH_TOKEN);
     }

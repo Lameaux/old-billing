@@ -3,9 +3,11 @@ package com.euromoby.api.payment;
 import com.euromoby.api.common.ErrorCode;
 import com.euromoby.api.common.ErrorResponse;
 import com.euromoby.api.common.UUIDValidator;
+import com.euromoby.api.security.IsOperator;
+import com.euromoby.api.security.IsViewer;
 import com.euromoby.api.security.MerchantFilter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -27,12 +29,14 @@ public class PaymentHandler {
         this.paymentService = paymentService;
     }
 
+    @IsViewer
     Mono<ServerResponse> listPayments(ServerRequest serverRequest) {
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(paymentService.getAllPayments(getMerchantId(serverRequest)), PaymentResponse.class);
     }
 
+    @IsViewer
     Mono<ServerResponse> getPayment(ServerRequest serverRequest) {
         String id = serverRequest.pathVariable(PARAM_ID);
         if (!UUIDValidator.isValid(id)) {
@@ -48,6 +52,7 @@ public class PaymentHandler {
 
     }
 
+    @IsViewer
     Mono<ServerResponse> getPaymentByMerchantReference(ServerRequest serverRequest) {
         Optional<String> omr = serverRequest.queryParam(PARAM_MERCHANT_REFERENCE);
         if (omr.isEmpty()) {
@@ -62,16 +67,19 @@ public class PaymentHandler {
         ).switchIfEmpty(ErrorResponse.notFound(ErrorCode.NOT_FOUND, "payment"));
     }
 
+    @IsOperator
     Mono<ServerResponse> createPayment(ServerRequest serverRequest) {
         Mono<PaymentRequest> paymentRequestMono = serverRequest.bodyToMono(PaymentRequest.class);
 
         Mono<PaymentResponse> paymentResponseMono = paymentService.createPayment(getMerchantId(serverRequest), paymentRequestMono);
 
+        // FIXME validation of input pramaeters
+
         return paymentResponseMono.flatMap(p -> ServerResponse.created(null)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(p)
         ).onErrorResume(
-                DataIntegrityViolationException.class,
+                DuplicateKeyException.class,
                 throwable -> ErrorResponse.conflict(ErrorCode.DUPLICATE_VALUE, PARAM_MERCHANT_REFERENCE)
         );
     }

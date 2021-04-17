@@ -32,18 +32,18 @@ public class MerchantFilter implements HandlerFilterFunction<ServerResponse, Ser
         return getMerchant(serverRequest).getId();
     }
 
-    public static Merchant getMerchant(ServerRequest serverRequest) {
+    private static Merchant getMerchant(ServerRequest serverRequest) {
         return (Merchant) (serverRequest.attribute(ATTRIBUTE_MERCHANT).orElseThrow());
     }
 
     @Override
     public Mono<ServerResponse> filter(ServerRequest request, HandlerFunction<ServerResponse> next) {
-        String merchantHeader = request.headers().firstHeader(SecurityConstants.HEADER_MERCHANT);
-        if (!StringUtils.hasText(merchantHeader)) {
+        String merchantName = request.headers().firstHeader(SecurityConstants.HEADER_MERCHANT);
+        if (!StringUtils.hasText(merchantName)) {
             return next.handle(request);
         }
 
-        Mono<Merchant> merchantMono = merchantRepository.findById(UUID.fromString(merchantHeader));
+        Mono<Merchant> merchantMono = merchantRepository.findByName(merchantName);
 
         return merchantMono.flatMap(merchant -> {
             request.attributes().put(ATTRIBUTE_MERCHANT, merchant);

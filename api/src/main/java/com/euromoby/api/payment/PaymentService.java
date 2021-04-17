@@ -12,8 +12,18 @@ public class PaymentService {
     private static final Function<Payment, PaymentResponse> TO_DTO = p -> {
         var dto = new PaymentResponse();
         dto.setId(p.getId());
-        dto.setMerchantReference(p.getMerchantReference());
         dto.setCustomerId(p.getCustomerId());
+        dto.setMerchantReference(p.getMerchantReference());
+        dto.setState(p.getState());
+        dto.setDescription(p.getDescription());
+        dto.setCurrency(p.getCurrency());
+        dto.setNetAmount(p.getNetAmount());
+        dto.setVatAmount(p.getVatAmount());
+        dto.setVatRate(p.getVatRate());
+        dto.setTotalAmount(p.getTotalAmount());
+        dto.setInstrumentId(p.getInstrumentId());
+        dto.setProviderReference(p.getProviderReference());
+        dto.setCallbackUrl(p.getCallbackUrl());
         dto.setCreatedAt(p.getCreatedAt());
         dto.setUpdatedAt(p.getUpdatedAt());
         return dto;
@@ -24,25 +34,32 @@ public class PaymentService {
         this.paymentRepository = paymentRepository;
     }
 
-    public Flux<PaymentResponse> getAllPayments(UUID merchantId) {
+    Flux<PaymentResponse> getAllPayments(UUID merchantId) {
         return paymentRepository.findAllByMerchantId(merchantId).map(TO_DTO);
     }
 
-    public Mono<PaymentResponse> getPayment(UUID id, UUID merchantId) {
+    Mono<PaymentResponse> getPayment(UUID id, UUID merchantId) {
         return paymentRepository.findByIdAndMerchantId(id, merchantId).map(TO_DTO);
     }
 
-    public Mono<PaymentResponse> getPaymentByMerchantReference(UUID merchantId, String merchantReference) {
+    Mono<PaymentResponse> getPaymentByMerchantReference(UUID merchantId, String merchantReference) {
         return paymentRepository.findByMerchantIdAndMerchantReference(merchantId, merchantReference).map(TO_DTO);
     }
 
     public Mono<PaymentResponse> createPayment(UUID merchantId, Mono<PaymentRequest> paymentRequestMono) {
         return paymentRequestMono.flatMap(paymentRequest -> {
             Payment p = new Payment();
-            p.setState(Payment.STATE_NEW);
+            p.setState(PaymentState.CREATED);
             p.setMerchantId(merchantId);
-            p.setMerchantReference(paymentRequest.getMerchantReference());
             p.setCustomerId(paymentRequest.getCustomerId());
+            p.setMerchantReference(paymentRequest.getMerchantReference());
+            p.setDescription(paymentRequest.getDescription());
+            p.setCurrency(paymentRequest.getCurrency());
+            p.setNetAmount(paymentRequest.getNetAmount());
+            p.setVatAmount(paymentRequest.getVatAmount());
+            p.setVatRate(paymentRequest.getVatRate());
+            p.setTotalAmount(paymentRequest.getTotalAmount());
+            p.setCallbackUrl(paymentRequest.getCallbackUrl());
             return paymentRepository.save(p).map(TO_DTO);
         });
     }

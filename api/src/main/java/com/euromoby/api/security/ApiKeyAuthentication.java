@@ -6,13 +6,13 @@ import java.util.Collections;
 
 public class ApiKeyAuthentication extends AbstractAuthenticationToken {
     private String apiKey;
-    private String merchant;
+    private String merchantName;
 
-    ApiKeyAuthentication(String apiKey, String merchant) {
+    ApiKeyAuthentication(String apiKey, String merchantName) {
         super(Collections.emptyList());
 
         this.apiKey = apiKey;
-        this.merchant = merchant;
+        this.merchantName = merchantName;
     }
 
     @Override
@@ -22,6 +22,6 @@ public class ApiKeyAuthentication extends AbstractAuthenticationToken {
 
     @Override
     public Object getPrincipal() {
-        return merchant;
+        return merchantName;
     }
 }

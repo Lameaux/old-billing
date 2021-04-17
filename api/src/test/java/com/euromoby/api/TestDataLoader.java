@@ -27,6 +27,7 @@ public class TestDataLoader implements ApplicationListener<ContextRefreshedEvent
         Merchant merchant = new Merchant();
         merchant.setName("junit");
         merchant.setApiKey(BCrypt.hashpw("junit-api-key", BCrypt.gensalt()));
+        merchant.setDescription("Merchant for junit");
         merchant.setEnv("test");
         merchant.setActive(true);
         merchantRepository.save(merchant).block();

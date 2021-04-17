@@ -32,19 +32,19 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
     public Mono<SecurityContext> load(ServerWebExchange swe) {
         ServerHttpRequest request = swe.getRequest();
 
-        String merchant = request.getHeaders().getFirst(SecurityConstants.HEADER_MERCHANT);
+        String merchantName = request.getHeaders().getFirst(SecurityConstants.HEADER_MERCHANT);
 
         String authorization = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
             var jwt = authorization.substring(7);
-            Authentication auth = new JwtAuthentication(jwt, merchant);
+            Authentication auth = new JwtAuthentication(jwt, merchantName);
             return this.authenticationManager.authenticate(auth).map(SecurityContextImpl::new);
         }
 
         String apiKey = request.getHeaders().getFirst(SecurityConstants.HEADER_API_KEY);
 
-        if (StringUtils.hasText(merchant) && StringUtils.hasText(apiKey)) {
-            Authentication auth = new ApiKeyAuthentication(apiKey, merchant);
+        if (StringUtils.hasText(merchantName) && StringUtils.hasText(apiKey)) {
+            Authentication auth = new ApiKeyAuthentication(apiKey, merchantName);
             return this.authenticationManager.authenticate(auth).map(SecurityContextImpl::new);
         }
 

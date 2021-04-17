@@ -4,8 +4,9 @@ import com.euromoby.api.common.ErrorCode;
 import com.euromoby.api.common.ErrorResponse;
 import com.euromoby.api.common.UUIDValidator;
 import com.euromoby.api.security.IsOperator;
+import com.euromoby.api.security.IsViewer;
 import com.euromoby.api.security.MerchantFilter;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -26,13 +27,14 @@ public class CustomerHandler {
         this.customerService = customerService;
     }
 
-    @IsOperator
+    @IsViewer
     Mono<ServerResponse> listCustomers(ServerRequest serverRequest) {
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(customerService.getAllCustomers(getMerchantId(serverRequest)), CustomerResponse.class);
     }
 
+    @IsViewer
     Mono<ServerResponse> getCustomer(ServerRequest serverRequest) {
         String id = serverRequest.pathVariable(PARAM_ID);
         if (!UUIDValidator.isValid(id)) {
@@ -47,6 +49,7 @@ public class CustomerHandler {
         ).switchIfEmpty(ErrorResponse.notFound(ErrorCode.NOT_FOUND, "customer"));
     }
 
+    @IsViewer
     Mono<ServerResponse> getCustomerByMerchantReference(ServerRequest serverRequest) {
         Optional<String> omr = serverRequest.queryParam(PARAM_MERCHANT_REFERENCE);
         if (omr.isEmpty()) {
@@ -61,6 +64,7 @@ public class CustomerHandler {
         ).switchIfEmpty(ErrorResponse.notFound(ErrorCode.NOT_FOUND, "customer"));
     }
 
+    @IsOperator
     Mono<ServerResponse> createCustomer(ServerRequest serverRequest) {
         Mono<CustomerRequest> customerRequestMono = serverRequest.bodyToMono(CustomerRequest.class);
 
@@ -70,7 +74,7 @@ public class CustomerHandler {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(c)
         ).onErrorResume(
-                DataIntegrityViolationException.class,
+                DuplicateKeyException.class,
                 throwable -> ErrorResponse.conflict(ErrorCode.DUPLICATE_VALUE, PARAM_MERCHANT_REFERENCE)
         );
     }

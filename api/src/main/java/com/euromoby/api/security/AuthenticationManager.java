@@ -13,6 +13,9 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
+// https://ard333.medium.com/authentication-and-authorization-using-jwt-on-spring-webflux-29b81f813e78
+// https://www.baeldung.com/spring-security-method-security
+
 @Component
 public class AuthenticationManager implements ReactiveAuthenticationManager {
     private JWTUtil jwtUtil;
@@ -42,7 +45,7 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
     }
 
     private Mono<Authentication> jwt(JwtAuthentication authentication) {
-        String merchantId = authentication.getPrincipal().toString();
+        String merchantName = authentication.getPrincipal().toString();
         String jwtToken = authentication.getCredentials().toString();
 
         if (!jwtUtil.validateToken(jwtToken)) {
@@ -52,31 +55,38 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
         UUID userId = jwtUtil.getUserIdFromToken(jwtToken);
         Mono<User> user = userRepository.findById(userId).filter(User::isActive);
 
-        if (!StringUtils.hasText(merchantId)) {
+        if (!StringUtils.hasText(merchantName)) {
             return user.map(
                     u -> UserAuthentication.create(userId, u.isAdmin() ? UserRole.ROLE_ADMIN : UserRole.ROLE_USER)
             );
         }
 
         return user.flatMap(u -> {
-            UUID merchantUUID = UUID.fromString(merchantId);
-            Mono<UserMerchant> userMerchant = userMerchantRepository.findByUserIdAndMerchantId(userId, merchantUUID);
-            return userMerchant.map(um -> MerchantAuthentication.create(merchantUUID, userId, um.getRole()));
+            Mono<Merchant> merchant = merchantRepository.findByName(merchantName);
+
+            return merchant.flatMap(
+                    m -> {
+                        if (u.isAdmin()) {
+                            return Mono.just(MerchantAuthentication.create(m.getId(), userId, MerchantRole.ROLE_OWNER));
+                        }
+
+                        Mono<UserMerchant> userMerchant = userMerchantRepository.findByUserIdAndMerchantId(userId, m.getId());
+                        return userMerchant.map(um -> MerchantAuthentication.create(m.getId(), userId, um.getRole()));
+                    }
+            );
         });
     }
 
     private Mono<Authentication> apiKey(ApiKeyAuthentication authentication) {
-        String merchantId = authentication.getPrincipal().toString();
+        String merchantName = authentication.getPrincipal().toString();
         String apiKey = authentication.getCredentials().toString();
 
-        UUID merchantUUID = UUID.fromString(merchantId);
-
-        Mono<Merchant> merchant = merchantRepository.findById(merchantUUID)
+        Mono<Merchant> merchant = merchantRepository.findByName(merchantName)
                 .filter(Merchant::isActive)
                 .filter(m -> BCrypt.checkpw(apiKey, m.getApiKey()));
 
         return merchant.map(
-                m -> MerchantAuthentication.create(merchantUUID, null, MerchantRole.ROLE_OWNER)
+                m -> MerchantAuthentication.create(m.getId(), null, MerchantRole.ROLE_OPERATOR)
         );
     }
 }

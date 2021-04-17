@@ -9,8 +9,9 @@ import org.springframework.data.relational.core.mapping.Table;
 @NoArgsConstructor
 @Table("merchants")
 public class Merchant extends Entity {
-    private String apiKey;
-    private String env;
     private String name;
+    private String apiKey;
+    private String description;
+    private String env;
     private boolean active;
 }

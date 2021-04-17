@@ -35,9 +35,9 @@ public class OpenAPIConfig {
                         .addSecuritySchemes(SecurityConstants.HEADER_API_KEY, new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER).name(SecurityConstants.HEADER_API_KEY))
                         .addSecuritySchemes(SecurityConstants.BEARER, new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme(SecurityConstants.BEARER).bearerFormat("JWT"))
         ).info(new Info()
-                .title("EUROMOBY Subscription API")
+                .title("EUROMOBY Payments API")
                 .contact(contact)
-                .description("Subscription as a Service. Together with Billing and Payment Gateway.")
+                .description("Payments as a Service. Subscription Billing and Payment Gateway.")
                 .version("v1")
         );
     }
@@ -58,5 +58,17 @@ public class OpenAPIConfig {
     public GroupedOpenApi authOpenApi() {
         String[] paths = {"/api/v1/auth/**"};
         return GroupedOpenApi.builder().group("auth").pathsToMatch(paths).build();
+    }
+
+    @Bean
+    public GroupedOpenApi usersOpenApi() {
+        String[] paths = {"/api/v1/users/**"};
+        return GroupedOpenApi.builder().group("users").pathsToMatch(paths).build();
+    }
+
+    @Bean
+    public GroupedOpenApi merchantsOpenApi() {
+        String[] paths = {"/api/v1/merchants/**"};
+        return GroupedOpenApi.builder().group("merchants").pathsToMatch(paths).build();
     }
 }

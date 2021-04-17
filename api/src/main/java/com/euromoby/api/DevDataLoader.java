@@ -34,6 +34,8 @@ public class DevDataLoader implements ApplicationListener<ContextRefreshedEvent>
     }
 
     private void createUsers() {
+        userRepository.deleteAll().block();
+
         User user = new User();
         user.setEmail("user@euromoby.com");
         user.setPasswordHash(BCrypt.hashpw("user", BCrypt.gensalt()));
@@ -58,9 +60,13 @@ public class DevDataLoader implements ApplicationListener<ContextRefreshedEvent>
     }
 
     private void createMerchants() {
+        userMerchantRepository.deleteAll().block();
+        merchantRepository.deleteAll().block();
+
         Merchant merchant = new Merchant();
+        merchant.setName("dev.euromoby.com");
         merchant.setApiKey(BCrypt.hashpw("api-key", BCrypt.gensalt()));
-        merchant.setName("merchant");
+        merchant.setDescription("Merchant for development");
         merchant.setEnv("test");
         merchant.setActive(true);
         merchantRepository.save(merchant).block();

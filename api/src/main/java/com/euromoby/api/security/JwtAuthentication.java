@@ -6,13 +6,13 @@ import java.util.Collections;
 
 public class JwtAuthentication extends AbstractAuthenticationToken {
     private String jwt;
-    private String merchant;
+    private String merchantName;
 
-    JwtAuthentication(String jwt, String merchant) {
+    JwtAuthentication(String jwt, String merchantName) {
         super(Collections.emptyList());
 
         this.jwt = jwt;
-        this.merchant = merchant;
+        this.merchantName = merchantName;
     }
 
     @Override
@@ -22,6 +22,6 @@ public class JwtAuthentication extends AbstractAuthenticationToken {
 
     @Override
     public Object getPrincipal() {
-        return merchant;
+        return merchantName;
     }
 }
