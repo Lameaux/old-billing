@@ -11,7 +11,7 @@ class MerchantResponse {
     private String name;
     private String apiKey;
     private String description;
-    private String env;
+    private MerchantEnv env;
     private boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

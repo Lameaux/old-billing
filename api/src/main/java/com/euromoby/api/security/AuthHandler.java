@@ -15,7 +15,6 @@ import reactor.core.publisher.Mono;
 @Component
 public class AuthHandler {
     private static final String EMAIL_PASSWORD = "email,password";
-    private static final String REFRESH_TOKEN = "refresh_token";
 
     private JWTUtil jwtUtil;
     private UserRepository userRepository;
@@ -27,7 +26,7 @@ public class AuthHandler {
     }
 
     @IsAnonymous
-    Mono<ServerResponse> authenticate(ServerRequest serverRequest) {
+    Mono<ServerResponse> login(ServerRequest serverRequest) {
         Mono<AuthRequest> authRequestMono = serverRequest.bodyToMono(AuthRequest.class);
 
         return authRequestMono.flatMap(
@@ -45,10 +44,5 @@ public class AuthHandler {
                                 }
                         )
         ).switchIfEmpty(ErrorResponse.unauthorized(ErrorCode.INVALID_CREDENTIALS, EMAIL_PASSWORD));
-    }
-
-    @IsUser
-    Mono<ServerResponse> refresh(ServerRequest serverRequest) {
-        return ErrorResponse.unauthorized(ErrorCode.INVALID_CREDENTIALS, REFRESH_TOKEN);
     }
 }

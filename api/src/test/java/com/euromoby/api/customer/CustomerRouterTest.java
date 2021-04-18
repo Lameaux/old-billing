@@ -38,7 +38,7 @@ class CustomerRouterTest extends RouterTest {
     void testListCustomers() {
         CustomerResponse newCustomer = createNewCustomer();
 
-        authorizedGet(API_ROOT).exchange()
+        authorizedMerchantGet(API_ROOT).exchange()
                 .expectStatus().isOk()
                 .expectBodyList(CustomerResponse.class).contains(newCustomer);
     }
@@ -50,14 +50,14 @@ class CustomerRouterTest extends RouterTest {
 
     @Test
     void testGetCustomerNotFound() {
-        authorizedGet(API_ROOT + "/{id}", UUID.randomUUID()).exchange().expectStatus().isNotFound();
+        authorizedMerchantGet(API_ROOT + "/{id}", UUID.randomUUID()).exchange().expectStatus().isNotFound();
     }
 
     @Test
     void testGetCustomer() {
         CustomerResponse newCustomer = createNewCustomer();
 
-        authorizedGet(API_ROOT + "/{id}", newCustomer.getId()).exchange()
+        authorizedMerchantGet(API_ROOT + "/{id}", newCustomer.getId()).exchange()
                 .expectStatus().isOk()
                 .expectBody(CustomerResponse.class).isEqualTo(newCustomer);
     }
@@ -68,13 +68,13 @@ class CustomerRouterTest extends RouterTest {
     }
 
     @Test
-    void testFindCustomerBadRequst() {
-        authorizedGet(API_ROOT + "/find_by", UUID.randomUUID()).exchange().expectStatus().isBadRequest();
+    void testFindCustomerBadRequest() {
+        authorizedMerchantGet(API_ROOT + "/find_by", UUID.randomUUID()).exchange().expectStatus().isBadRequest();
     }
 
     @Test
     void testFindCustomerNotFound() {
-        authorizedGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", UUID.randomUUID()).exchange()
+        authorizedMerchantGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", UUID.randomUUID()).exchange()
                 .expectStatus().isNotFound();
     }
 
@@ -82,7 +82,7 @@ class CustomerRouterTest extends RouterTest {
     void testFindCustomer() {
         CustomerResponse newCustomer = createNewCustomer();
 
-        authorizedGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", newCustomer.getMerchantReference()).exchange()
+        authorizedMerchantGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", newCustomer.getMerchantReference()).exchange()
                 .expectStatus().isOk()
                 .expectBody(CustomerResponse.class).isEqualTo(newCustomer);
     }
@@ -97,7 +97,7 @@ class CustomerRouterTest extends RouterTest {
         var customerRequest = new CustomerRequest();
         customerRequest.setMerchantReference(UUID.randomUUID().toString());
 
-        authorizedPost(API_ROOT).body(Mono.just(customerRequest), CustomerRequest.class).exchange()
+        authorizedMerchantPost(API_ROOT).body(Mono.just(customerRequest), CustomerRequest.class).exchange()
                 .expectStatus().isCreated()
                 .expectBody(CustomerResponse.class)
                 .value(CustomerResponse::getMerchantReference, equalTo(customerRequest.getMerchantReference()));

@@ -12,6 +12,6 @@ public class Merchant extends Entity {
     private String name;
     private String apiKey;
     private String description;
-    private String env;
+    private MerchantEnv env;
     private boolean active;
 }

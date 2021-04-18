@@ -13,7 +13,7 @@ import java.util.UUID;
 public class UserAuthentication extends AbstractAuthenticationToken {
     private UUID userId;
 
-    UserAuthentication(UUID userId, Collection<? extends GrantedAuthority> authorities) {
+    private UserAuthentication(UUID userId, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         setAuthenticated(true);
 

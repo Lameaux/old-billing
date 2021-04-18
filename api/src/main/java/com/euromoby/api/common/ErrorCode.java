@@ -5,6 +5,7 @@ public enum ErrorCode {
     MISSING_QUERY_PARAM("Missing query parameter"),
     INVALID_QUERY_PARAM("Invalid query parameter"),
     INVALID_CREDENTIALS("Invalid credentials"),
+    ACCESS_DENIED("Access denied"),
     INVALID_UUID("Not a valid UUID"),
     DUPLICATE_VALUE("Value already exists"),
     NOT_FOUND("Record not found");

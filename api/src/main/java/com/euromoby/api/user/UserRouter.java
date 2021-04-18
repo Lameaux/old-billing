@@ -90,6 +90,9 @@ public class UserRouter {
                     @ApiResponse(responseCode = "400", description = "Invalid User"),
                     @ApiResponse(responseCode = "409", description = "Duplicate User"),
                     @ApiResponse(responseCode = "500", description = "Server Error")
+            },
+            security = {
+                    @SecurityRequirement(name = SecurityConstants.BEARER)
             }
     ))
     public RouterFunction<ServerResponse> createUserRoute(UserHandler userHandler) {

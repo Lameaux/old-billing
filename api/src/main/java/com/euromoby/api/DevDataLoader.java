@@ -1,6 +1,7 @@
 package com.euromoby.api;
 
 import com.euromoby.api.merchant.Merchant;
+import com.euromoby.api.merchant.MerchantEnv;
 import com.euromoby.api.merchant.MerchantRepository;
 import com.euromoby.api.user.*;
 import org.mindrot.jbcrypt.BCrypt;
@@ -65,9 +66,9 @@ public class DevDataLoader implements ApplicationListener<ContextRefreshedEvent>
 
         Merchant merchant = new Merchant();
         merchant.setName("dev.euromoby.com");
-        merchant.setApiKey(BCrypt.hashpw("api-key", BCrypt.gensalt()));
+        merchant.setApiKey("api-key");
         merchant.setDescription("Merchant for development");
-        merchant.setEnv("test");
+        merchant.setEnv(MerchantEnv.TEST);
         merchant.setActive(true);
         merchantRepository.save(merchant).block();
 

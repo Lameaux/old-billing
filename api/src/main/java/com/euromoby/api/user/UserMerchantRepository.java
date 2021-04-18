@@ -10,4 +10,5 @@ public interface UserMerchantRepository extends ReactiveCrudRepository<UserMerch
     Flux<UserMerchant> findAllByUserId(UUID userId);
 
     Mono<UserMerchant> findByUserIdAndMerchantId(UUID userId, UUID merchantId);
+
 }

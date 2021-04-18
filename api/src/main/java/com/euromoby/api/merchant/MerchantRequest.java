@@ -6,5 +6,5 @@ import lombok.Data;
 class MerchantRequest {
     private String name;
     private String description;
-    private String env;
+    private MerchantEnv env;
 }

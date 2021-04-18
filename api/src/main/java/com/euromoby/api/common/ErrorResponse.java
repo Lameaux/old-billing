@@ -27,6 +27,12 @@ public class ErrorResponse {
                 .body(Mono.just(of(errorCode, context)), ErrorResponse.class);
     }
 
+    public static Mono<ServerResponse> forbidden(ErrorCode errorCode, String context) {
+        return ServerResponse.status(HttpStatus.FORBIDDEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(of(errorCode, context)), ErrorResponse.class);
+    }
+
     public static Mono<ServerResponse> badRequest(ErrorCode errorCode, String context) {
         return ServerResponse.status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)

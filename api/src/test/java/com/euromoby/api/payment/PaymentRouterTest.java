@@ -46,7 +46,7 @@ class PaymentRouterTest extends RouterTest {
     void testListPayments() {
         PaymentResponse newPayment = createNewPayment();
 
-        authorizedGet(API_ROOT).exchange()
+        authorizedMerchantGet(API_ROOT).exchange()
                 .expectStatus().isOk()
                 .expectBodyList(PaymentResponse.class)
                 .value(list -> {
@@ -63,14 +63,14 @@ class PaymentRouterTest extends RouterTest {
 
     @Test
     void testGetPaymentNotFound() {
-        authorizedGet(API_ROOT + "/{id}", UUID.randomUUID()).exchange().expectStatus().isNotFound();
+        authorizedMerchantGet(API_ROOT + "/{id}", UUID.randomUUID()).exchange().expectStatus().isNotFound();
     }
 
     @Test
     void testGetPayment() {
         PaymentResponse newPayment = createNewPayment();
 
-        authorizedGet(API_ROOT + "/{id}", newPayment.getId()).exchange()
+        authorizedMerchantGet(API_ROOT + "/{id}", newPayment.getId()).exchange()
                 .expectStatus().isOk()
                 .expectBody(PaymentResponse.class).isEqualTo(newPayment);
     }
@@ -81,20 +81,20 @@ class PaymentRouterTest extends RouterTest {
     }
 
     @Test
-    void testFindPaymentBadRequst() {
-        authorizedGet(API_ROOT + "/find_by", UUID.randomUUID()).exchange().expectStatus().isBadRequest();
+    void testFindPaymentBadRequest() {
+        authorizedMerchantGet(API_ROOT + "/find_by", UUID.randomUUID()).exchange().expectStatus().isBadRequest();
     }
 
     @Test
     void testFindPaymentNotFound() {
-        authorizedGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", UUID.randomUUID()).exchange().expectStatus().isNotFound();
+        authorizedMerchantGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", UUID.randomUUID()).exchange().expectStatus().isNotFound();
     }
 
     @Test
     void testFindPayment() {
         PaymentResponse newPayment = createNewPayment();
 
-        authorizedGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", newPayment.getMerchantReference()).exchange()
+        authorizedMerchantGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", newPayment.getMerchantReference()).exchange()
                 .expectStatus().isOk()
                 .expectBody(PaymentResponse.class).isEqualTo(newPayment);
     }
@@ -111,7 +111,7 @@ class PaymentRouterTest extends RouterTest {
         paymentRequest.setCurrency("EUR");
         paymentRequest.setTotalAmount(new BigDecimal("1.00"));
 
-        authorizedPost(API_ROOT).body(Mono.just(paymentRequest), PaymentRequest.class).exchange()
+        authorizedMerchantPost(API_ROOT).body(Mono.just(paymentRequest), PaymentRequest.class).exchange()
                 .expectStatus().isCreated()
                 .expectBody(PaymentResponse.class)
                 .value(PaymentResponse::getMerchantReference, equalTo(paymentRequest.getMerchantReference()));

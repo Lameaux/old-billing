@@ -30,7 +30,7 @@ public class JWTUtil {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    String generateToken(User user) {
+    public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", user.getEmail());
         claims.put("name", user.getName());
@@ -41,7 +41,6 @@ public class JWTUtil {
     UUID getUserIdFromToken(String token) {
         return UUID.fromString(getAllClaimsFromToken(token).getSubject());
     }
-
 
     Boolean validateToken(String token) {
         return !isTokenExpired(token);

@@ -3,22 +3,16 @@ package com.euromoby.api.merchant;
 import com.euromoby.api.common.ErrorCode;
 import com.euromoby.api.common.ErrorResponse;
 import com.euromoby.api.common.UUIDValidator;
-import com.euromoby.api.security.IsOwner;
+import com.euromoby.api.security.AuthenticationUtil;
 import com.euromoby.api.security.IsUser;
-import com.euromoby.api.user.UserRole;
+import com.euromoby.api.security.UserAuthentication;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-
-import java.security.Principal;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Component
 public class MerchantHandler {
@@ -33,59 +27,70 @@ public class MerchantHandler {
 
     @IsUser
     Mono<ServerResponse> listMerchants(ServerRequest serverRequest) {
-        Mono<? extends Principal> principalMono = serverRequest.principal();
+        return serverRequest.principal().flatMap(principal -> {
+            UserAuthentication userAuthentication = (UserAuthentication) principal;
 
-        return principalMono.flatMap(principal -> {
-            Authentication authentication = (Authentication) principal;
-
-            Set<UserRole> roles = authentication.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .map(UserRole::valueOf)
-                    .collect(Collectors.toSet());
-
-            if (roles.contains(UserRole.ROLE_ADMIN)) {
-                return ServerResponse.ok()
-                        .contentType(MediaType.APPLICATION_JSON)
+            if (AuthenticationUtil.isAdmin(userAuthentication)) {
+                return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
                         .body(merchantService.getAllMerchants(), MerchantResponse.class);
             }
 
-            return ServerResponse.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(
-                            merchantService.getAllMerchantsByUserId((UUID) authentication.getPrincipal()),
-                            MerchantResponse.class
-                    );
+            UUID userId = (UUID) userAuthentication.getPrincipal();
 
+            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
+                    .body(merchantService.getAllMerchantsForUserId(userId), MerchantResponse.class);
         });
     }
 
-    @IsOwner
+    @IsUser
     Mono<ServerResponse> getMerchant(ServerRequest serverRequest) {
         String id = serverRequest.pathVariable(PARAM_ID);
         if (!UUIDValidator.isValid(id)) {
             return ErrorResponse.badRequest(ErrorCode.INVALID_UUID, PARAM_ID);
         }
+        UUID merchantId = UUID.fromString(id);
 
-        Mono<MerchantResponse> userResponseMono = merchantService.getMerchant(UUID.fromString(id));
+        return serverRequest.principal().flatMap(principal -> {
+            UserAuthentication userAuthentication = (UserAuthentication) principal;
 
-        return userResponseMono.flatMap(u -> ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(u)
-        ).switchIfEmpty(ErrorResponse.notFound(ErrorCode.NOT_FOUND, "merchant"));
+            if (AuthenticationUtil.isAdmin(userAuthentication)) {
+                Mono<MerchantResponse> userResponseMono = merchantService.getMerchant(UUID.fromString(id));
+
+                return userResponseMono.flatMap(u -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(u)
+                ).switchIfEmpty(ErrorResponse.notFound(ErrorCode.NOT_FOUND, "merchant"));
+            }
+
+            UUID userId = (UUID) userAuthentication.getPrincipal();
+
+            Mono<MerchantResponse> userResponseMono = merchantService.getMerchantForUserId(userId, merchantId);
+
+            return userResponseMono.flatMap(u -> ServerResponse.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(u)
+            ).switchIfEmpty(ErrorResponse.notFound(ErrorCode.NOT_FOUND, "merchant"));
+
+        });
     }
 
     @IsUser
     Mono<ServerResponse> createMerchant(ServerRequest serverRequest) {
         Mono<MerchantRequest> merchantRequestMono = serverRequest.bodyToMono(MerchantRequest.class);
 
-        Mono<MerchantResponse> merchantResponseMono = merchantService.createMerchant(merchantRequestMono);
+        return serverRequest.principal().flatMap(principal -> {
+            UserAuthentication userAuthentication = (UserAuthentication) principal;
+            UUID userId = (UUID) userAuthentication.getPrincipal();
 
-        return merchantResponseMono.flatMap(u -> ServerResponse.created(null)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(u)
-        ).onErrorResume(
-                DuplicateKeyException.class,
-                throwable -> ErrorResponse.conflict(ErrorCode.DUPLICATE_VALUE, PARAM_NAME)
-        );
+            Mono<MerchantResponse> merchantResponseMono = merchantService.createMerchant(merchantRequestMono, userId);
+
+            return merchantResponseMono.flatMap(u -> ServerResponse.created(null)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(u)
+            ).onErrorResume(
+                    DuplicateKeyException.class,
+                    throwable -> ErrorResponse.conflict(ErrorCode.DUPLICATE_VALUE, PARAM_NAME)
+            );
+        });
     }
 }

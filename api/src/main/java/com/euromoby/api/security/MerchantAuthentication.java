@@ -13,7 +13,7 @@ import java.util.UUID;
 public class MerchantAuthentication extends AbstractAuthenticationToken {
     private UUID merchant;
 
-    MerchantAuthentication(UUID merchant, UUID userId, Collection<? extends GrantedAuthority> authorities) {
+    private MerchantAuthentication(UUID merchant, UUID userId, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         setDetails(userId);
         setAuthenticated(true);
