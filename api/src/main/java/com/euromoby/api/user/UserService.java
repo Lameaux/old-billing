@@ -45,7 +45,7 @@ public class UserService {
         return userRepository.findByEmail(email).map(TO_DTO);
     }
 
-    Mono<UserResponse> createUser(Mono<UserRequest> userRequestMono) {
+    public Mono<UserResponse> createUser(Mono<UserRequest> userRequestMono) {
         return userRequestMono.flatMap(userRequest -> {
             User u = new User();
             u.setEmail(userRequest.getEmail());

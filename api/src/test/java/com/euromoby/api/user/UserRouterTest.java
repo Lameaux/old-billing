@@ -5,6 +5,7 @@ import com.euromoby.api.common.ErrorResponse;
 import com.euromoby.api.common.RouterTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -68,7 +69,7 @@ class UserRouterTest extends RouterTest {
 
     @Test
     void getUserAsSameUser() {
-        authorizedUserGet(API_ROOT + "/{id}", getJUnitUserId()).exchange().expectStatus().isOk();
+        authorizedUserGet(API_ROOT + "/{id}", getJUnitUser().getId()).exchange().expectStatus().isOk();
     }
 
     @Test
@@ -111,29 +112,15 @@ class UserRouterTest extends RouterTest {
         var userRequest = newUserRequest();
 
         webTestClient.post().uri(API_ROOT).body(Mono.just(userRequest), UserRequest.class).exchange()
-                .expectStatus().isBadRequest()
-                .expectBody(ErrorResponse.class)
-                .isEqualTo(ErrorResponse.of(ErrorCode.MISSING_QUERY_PARAM, UserHandler.PARAM_RECAPTCHA));
+                .expectStatus().isUnauthorized();
     }
 
     @Test
-    void createUserWithInvalidRecaptcha() {
+    void createUserAsUser() {
         var userRequest = newUserRequest();
 
-        webTestClient.post().uri(API_ROOT + "?recaptcha=" + UUID.randomUUID())
-                .body(Mono.just(userRequest), UserRequest.class).exchange()
-                .expectStatus().isBadRequest()
-                .expectBody(ErrorResponse.class)
-                .isEqualTo(ErrorResponse.of(ErrorCode.INVALID_QUERY_PARAM, UserHandler.PARAM_RECAPTCHA));
-    }
-
-    @Test
-    void createUserWithValidRecaptcha() {
-        var userRequest = newUserRequest();
-
-        webTestClient.post().uri(API_ROOT + "?recaptcha=42").body(Mono.just(userRequest), UserRequest.class).exchange()
-                .expectStatus().isCreated()
-                .expectBody(UserResponse.class).value(UserResponse::getEmail, equalTo(userRequest.getEmail()));
+        authorizedUserPost(API_ROOT).body(Mono.just(userRequest), UserRequest.class).exchange()
+                .expectStatus().isForbidden();
     }
 
     @Test
@@ -146,17 +133,22 @@ class UserRouterTest extends RouterTest {
     }
 
     @Test
-    void createUserAsUser() {
+    void createDuplicateUser() {
         var userRequest = newUserRequest();
+        userRequest.setEmail(getJUnitUser().getEmail());
 
-        authorizedUserPost(API_ROOT).body(Mono.just(userRequest), UserRequest.class).exchange()
-                .expectStatus().isForbidden();
+        authorizedAdminPost(API_ROOT).body(Mono.just(userRequest), UserRequest.class).exchange()
+                .expectStatus().isEqualTo(HttpStatus.CONFLICT)
+                .expectBody(ErrorResponse.class)
+                .isEqualTo(ErrorResponse.of(ErrorCode.DUPLICATE_VALUE, UserHandler.PARAM_EMAIL));
     }
 
     private UserRequest newUserRequest() {
         var userRequest = new UserRequest();
-        userRequest.setPassword(UUID.randomUUID().toString());
         userRequest.setEmail(UUID.randomUUID() + "@euromoby.com");
+        userRequest.setPassword(UUID.randomUUID().toString());
+        userRequest.setName("Donald Trump");
+        userRequest.setMsisdn("+123456789");
         return userRequest;
     }
 }

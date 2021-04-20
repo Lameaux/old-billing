@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Component
-public class JWTUtil {
+public class JwtUtil {
 
     @Value("${auth.jwt.secret}")
     private String secret;

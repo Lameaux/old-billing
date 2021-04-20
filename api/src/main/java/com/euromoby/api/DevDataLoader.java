@@ -26,17 +26,20 @@ public class DevDataLoader implements ApplicationListener<ContextRefreshedEvent>
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
-        loadData();
-    }
+        cleanupDatabase();
 
-    private void loadData() {
         createUsers();
         createMerchants();
     }
 
-    private void createUsers() {
-        userRepository.deleteAll().block();
 
+    private void cleanupDatabase() {
+        userMerchantRepository.deleteAll().block();
+        merchantRepository.deleteAll().block();
+        userRepository.deleteAll().block();
+    }
+
+    private void createUsers() {
         User user = new User();
         user.setEmail("user@euromoby.com");
         user.setPasswordHash(BCrypt.hashpw("user", BCrypt.gensalt()));
@@ -48,22 +51,19 @@ public class DevDataLoader implements ApplicationListener<ContextRefreshedEvent>
         user.setMsisdnVerified(true);
         userRepository.save(user).block();
 
-        User adminUser = new User();
-        adminUser.setEmail("admin@euromoby.com");
-        adminUser.setPasswordHash(BCrypt.hashpw("admin", BCrypt.gensalt()));
-        user.setName("Admin");
-        user.setMsisdn("+420777000001");
-        user.setActive(true);
-        user.setAdmin(true);
-        user.setEmailVerified(true);
-        user.setMsisdnVerified(false);
-        userRepository.save(adminUser).block();
+        User admin = new User();
+        admin.setEmail("admin@euromoby.com");
+        admin.setPasswordHash(BCrypt.hashpw("admin", BCrypt.gensalt()));
+        admin.setName("Admin");
+        admin.setMsisdn("+420777000001");
+        admin.setActive(true);
+        admin.setAdmin(true);
+        admin.setEmailVerified(true);
+        admin.setMsisdnVerified(false);
+        userRepository.save(admin).block();
     }
 
     private void createMerchants() {
-        userMerchantRepository.deleteAll().block();
-        merchantRepository.deleteAll().block();
-
         Merchant merchant = new Merchant();
         merchant.setName("dev.euromoby.com");
         merchant.setApiKey("api-key");

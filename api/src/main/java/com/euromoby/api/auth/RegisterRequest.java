@@ -1,4 +1,4 @@
-package com.euromoby.api.security;
+package com.euromoby.api.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthRequest {
+public class RegisterRequest {
     private String email;
     private String password;
+    private String msisdn;
+    private String name;
+    private String recaptcha;
 }

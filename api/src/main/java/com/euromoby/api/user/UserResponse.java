@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-class UserResponse {
+public class UserResponse {
     private UUID id;
     private String email;
     private String msisdn;

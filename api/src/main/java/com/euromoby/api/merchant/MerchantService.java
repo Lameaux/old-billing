@@ -1,6 +1,5 @@
 package com.euromoby.api.merchant;
 
-import com.euromoby.api.user.MerchantRole;
 import com.euromoby.api.user.UserMerchant;
 import com.euromoby.api.user.UserMerchantRepository;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -2,7 +2,7 @@ package com.euromoby.api.common;
 
 import com.euromoby.api.merchant.Merchant;
 import com.euromoby.api.merchant.MerchantRepository;
-import com.euromoby.api.security.JWTUtil;
+import com.euromoby.api.security.JwtUtil;
 import com.euromoby.api.security.SecurityConstants;
 import com.euromoby.api.user.User;
 import com.euromoby.api.user.UserRepository;
@@ -18,10 +18,9 @@ import java.util.UUID;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 public class RouterTest extends BaseTest {
+    public static final String USER_EMAIL = "user@euromoby.com";
     private static final String MERCHANT_NAME = "junit";
     private static final String MERCHANT_API_KEY = "junit-api-key";
-
-    private static final String USER_EMAIL = "user@euromoby.com";
     private static final String ADMIN_EMAIL = "admin@euromoby.com";
 
     @Autowired
@@ -34,14 +33,14 @@ public class RouterTest extends BaseTest {
     UserRepository userRepository;
 
     @Autowired
-    JWTUtil jwtUtil;
+    JwtUtil jwtUtil;
 
     protected UUID getJUnitMerchantId() {
         return merchantRepository.findByName(MERCHANT_NAME).map(Merchant::getId).block();
     }
 
-    protected UUID getJUnitUserId() {
-        return userRepository.findByEmail(USER_EMAIL).map(User::getId).block();
+    protected User getJUnitUser() {
+        return userRepository.findByEmail(USER_EMAIL).block();
     }
 
     protected WebTestClient.RequestHeadersSpec authorizedMerchantGet(String uri, Object... uriVariables) {
@@ -64,7 +63,7 @@ public class RouterTest extends BaseTest {
 
     protected WebTestClient.RequestBodySpec authorizedAdminPost(String uri, Object... uriVariables) {
         return webTestClient.post().uri(uri, uriVariables)
-                .header(HttpHeaders.AUTHORIZATION,  getBearerTokenForUser(ADMIN_EMAIL))
+                .header(HttpHeaders.AUTHORIZATION, getBearerTokenForUser(ADMIN_EMAIL))
                 .contentType(MediaType.APPLICATION_JSON);
     }
 

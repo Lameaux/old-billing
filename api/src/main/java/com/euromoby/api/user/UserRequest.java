@@ -3,7 +3,7 @@ package com.euromoby.api.user;
 import lombok.Data;
 
 @Data
-class UserRequest {
+public class UserRequest {
     private String email;
     private String password;
     private String msisdn;

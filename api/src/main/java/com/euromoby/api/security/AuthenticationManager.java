@@ -18,13 +18,13 @@ import java.util.UUID;
 
 @Component
 public class AuthenticationManager implements ReactiveAuthenticationManager {
-    private JWTUtil jwtUtil;
+    private JwtUtil jwtUtil;
     private UserRepository userRepository;
     private UserMerchantRepository userMerchantRepository;
     private MerchantRepository merchantRepository;
 
     @Autowired
-    public AuthenticationManager(JWTUtil jwtUtil, UserRepository userRepository, UserMerchantRepository userMerchantRepository, MerchantRepository merchantRepository) {
+    public AuthenticationManager(JwtUtil jwtUtil, UserRepository userRepository, UserMerchantRepository userMerchantRepository, MerchantRepository merchantRepository) {
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
         this.userMerchantRepository = userMerchantRepository;
@@ -45,8 +45,8 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
     }
 
     private Mono<Authentication> jwt(JwtAuthentication authentication) {
-        String merchantName = (String)authentication.getPrincipal();
-        String jwtToken = (String)authentication.getCredentials();
+        String merchantName = (String) authentication.getPrincipal();
+        String jwtToken = (String) authentication.getCredentials();
 
         if (!jwtUtil.validateToken(jwtToken)) {
             return Mono.empty();
@@ -78,8 +78,8 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
     }
 
     private Mono<Authentication> apiKey(ApiKeyAuthentication authentication) {
-        String merchantName = (String)authentication.getPrincipal();
-        String apiKey = (String)authentication.getCredentials();
+        String merchantName = (String) authentication.getPrincipal();
+        String apiKey = (String) authentication.getCredentials();
 
         Mono<Merchant> merchant = merchantRepository.findByName(merchantName)
                 .filter(Merchant::isActive)

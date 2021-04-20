@@ -51,7 +51,6 @@ public class WebSecurityConfig {
                 .pathMatchers(HttpMethod.OPTIONS).permitAll()
                 .pathMatchers("/actuator/health").permitAll()
                 .pathMatchers("/api/v1/auth/**").permitAll()
-                .pathMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
                 .pathMatchers(SWAGGER_PATTERNS).permitAll()
 
                 .anyExchange().authenticated()
