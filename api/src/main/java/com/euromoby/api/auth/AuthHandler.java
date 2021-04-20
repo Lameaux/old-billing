@@ -43,9 +43,6 @@ public class AuthHandler {
                         .flatMap(
                                 user -> {
                                     if (BCrypt.checkpw(authRequest.getPassword(), user.getPasswordHash())) {
-
-                                        System.out.println(user);
-
                                         return ServerResponse
                                                 .ok()
                                                 .contentType(MediaType.APPLICATION_JSON)
