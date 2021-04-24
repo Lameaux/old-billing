@@ -1,7 +1,11 @@
 package com.euromoby.api.user;
 
+import com.euromoby.api.merchant.MerchantRepository;
+import com.euromoby.api.merchant.MerchantService;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -11,7 +15,7 @@ import java.util.function.Function;
 
 @Service
 public class UserService {
-    private static final Function<User, UserResponse> TO_DTO = u -> {
+    public static final Function<User, UserResponse> TO_DTO = u -> {
         var dto = new UserResponse();
         dto.setId(u.getId());
         dto.setEmail(u.getEmail());
@@ -27,22 +31,48 @@ public class UserService {
     };
 
     private final UserRepository userRepository;
+    private final MerchantRepository merchantRepository;
+    private final UserMerchantRepository userMerchantRepository;
+
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, MerchantRepository merchantRepository, UserMerchantRepository userMerchantRepository) {
         this.userRepository = userRepository;
+        this.merchantRepository = merchantRepository;
+        this.userMerchantRepository = userMerchantRepository;
     }
 
-    Flux<UserResponse> getAllUsers() {
-        return userRepository.findAll().map(TO_DTO);
+    Flux<UserResponse> getAllUsers(String orderBy, String orderDirection, int page, int size) {
+        return userRepository.findAllByIdNotNull(
+                PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderDirection), orderBy))
+        ).map(TO_DTO);
     }
 
-    Mono<UserResponse> getUser(UUID id) {
-        return userRepository.findById(id).map(TO_DTO);
+    Flux<UserResponse> findUsersByFilter(String email, String msisdn, String name, String orderBy, String orderDirection, int page, int size) {
+        return userRepository.findAllByEmailOrMsisdnOrName(
+                email,
+                msisdn,
+                name,
+                PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderDirection), orderBy))
+        ).map(TO_DTO);
     }
 
-    Mono<UserResponse> getUserByEmail(String email) {
-        return userRepository.findByEmail(email).map(TO_DTO);
+    Mono<UserAndMerchantsResponse> getUserAndMerchants(UUID userId) {
+        return userRepository.findById(userId).map(TO_DTO)
+                .flatMap(
+                        user -> userMerchantRepository.findAllByUserId(userId)
+                                .flatMap(
+                                        userMerchant -> merchantRepository.findById(userMerchant.getMerchantId())
+                                                .map(MerchantService.TO_DTO)
+                                                .map(merchantResponse -> new MerchantWithRoleResponse(
+                                                                merchantResponse,
+                                                                userMerchant.getRole()
+                                                        )
+                                                )
+                                )
+                                .collectList()
+                                .map(list -> new UserAndMerchantsResponse(user, list))
+                );
     }
 
     public Mono<UserResponse> createUser(Mono<UserRequest> userRequestMono) {

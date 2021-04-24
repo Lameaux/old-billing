@@ -80,7 +80,7 @@ public class RouterTest extends BaseTest {
 
     private String getBearerTokenForUser(String email) {
         return userRepository.findByEmail(email).map(
-                user -> SecurityConstants.BEARER + " " + jwtUtil.generateToken(user)
+                user -> SecurityConstants.BEARER + " " + jwtUtil.buildAuthResponse(user).getToken()
         ).block();
     }
 }

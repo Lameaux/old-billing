@@ -46,7 +46,7 @@ public class AuthHandler {
                                         return ServerResponse
                                                 .ok()
                                                 .contentType(MediaType.APPLICATION_JSON)
-                                                .bodyValue(new AuthResponse(jwtUtil.generateToken(user)));
+                                                .bodyValue(jwtUtil.buildAuthResponse(user));
                                     } else {
                                         return ErrorResponse.unauthorized(ErrorCode.INVALID_CREDENTIALS, EMAIL_PASSWORD);
                                     }
@@ -73,7 +73,7 @@ public class AuthHandler {
                     return userResponseMono.flatMap(userResponse -> ServerResponse
                             .ok()
                             .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(new AuthResponse(jwtUtil.generateToken(toUser(userResponse))))
+                            .bodyValue(jwtUtil.buildAuthResponse(toUser(userResponse)))
                     ).onErrorResume(
                             DataIntegrityViolationException.class,
                             throwable -> ErrorResponse.conflict(ErrorCode.DUPLICATE_VALUE, PARAM_EMAIL)

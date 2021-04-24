@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-class MerchantResponse {
+public class MerchantResponse {
     private UUID id;
     private String name;
     private String apiKey;

@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS merchants
     name        varchar(255) NOT NULL,
     api_key     varchar(255) NOT NULL,
     description varchar(255),
-    env         char(4)      NOT NULL DEFAULT 'test',
+    env         char(4)      NOT NULL DEFAULT 'TEST',
     active      boolean      NOT NULL DEFAULT true,
     created_at  timestamp    NOT NULL,
     updated_at  timestamp    NOT NULL

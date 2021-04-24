@@ -27,7 +27,7 @@ public class MerchantHandler {
     }
 
     @IsUser
-    Mono<ServerResponse> listMerchants(ServerRequest serverRequest) {
+    Mono<ServerResponse> listAll(ServerRequest serverRequest) {
         return serverRequest.principal().flatMap(principal -> {
             UserAuthentication userAuthentication = (UserAuthentication) principal;
 

@@ -72,10 +72,10 @@ public class DevDataLoader implements ApplicationListener<ContextRefreshedEvent>
         merchant.setActive(true);
         merchantRepository.save(merchant).block();
 
-        User user = userRepository.findByEmail("user@euromoby.com").block();
+        var userId = userRepository.findByEmail("user@euromoby.com").map(User::getId).block();
 
         UserMerchant userMerchant = new UserMerchant();
-        userMerchant.setUserId(user.getId());
+        userMerchant.setUserId(userId);
         userMerchant.setMerchantId(merchant.getId());
         userMerchant.setRole(MerchantRole.ROLE_OWNER);
         userMerchantRepository.save(userMerchant).block();

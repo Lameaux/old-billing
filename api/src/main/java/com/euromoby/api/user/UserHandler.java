@@ -21,7 +21,16 @@ import java.util.UUID;
 @Component
 public class UserHandler {
     static final String PARAM_EMAIL = "email";
+    private static final int DEFAULT_PAGE_NUM = 0;
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final String PARAM_ORDER_BY = "order_by";
+    private static final String PARAM_ORDER_DIRECTION = "order_direction";
+    private static final String PARAM_PAGE = "page";
+    private static final String PARAM_SIZE = "size";
     private static final String PARAM_ID = "id";
+    private static final String PARAM_MSISDN = "msisdn";
+    private static final String PARAM_NAME = "name";
+
     private final UserService userService;
 
     public UserHandler(UserService userService) {
@@ -29,10 +38,43 @@ public class UserHandler {
     }
 
     @IsAdmin
-    Mono<ServerResponse> listUsers(ServerRequest serverRequest) {
+    Mono<ServerResponse> listAll(ServerRequest serverRequest) {
+        Optional<String> orderBy = serverRequest.queryParam(PARAM_ORDER_BY);
+        Optional<String> orderDirection = serverRequest.queryParam(PARAM_ORDER_DIRECTION);
+        Optional<String> page = serverRequest.queryParam(PARAM_PAGE);
+        Optional<String> size = serverRequest.queryParam(PARAM_SIZE);
+
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(userService.getAllUsers(), UserResponse.class);
+                .body(userService.getAllUsers(
+                        orderBy.orElse("email"),
+                        orderDirection.orElse("ASC"),
+                        page.map(Integer::valueOf).orElse(DEFAULT_PAGE_NUM),
+                        size.map(Integer::valueOf).orElse(DEFAULT_PAGE_SIZE)
+                ), UserResponse.class);
+    }
+
+    @IsAdmin
+    Mono<ServerResponse> findByFilter(ServerRequest serverRequest) {
+        Optional<String> email = serverRequest.queryParam(PARAM_EMAIL);
+        Optional<String> msisdn = serverRequest.queryParam(PARAM_MSISDN);
+        Optional<String> name = serverRequest.queryParam(PARAM_NAME);
+        Optional<String> orderBy = serverRequest.queryParam(PARAM_ORDER_BY);
+        Optional<String> orderDirection = serverRequest.queryParam(PARAM_ORDER_DIRECTION);
+        Optional<String> page = serverRequest.queryParam(PARAM_PAGE);
+        Optional<String> size = serverRequest.queryParam(PARAM_SIZE);
+
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(userService.findUsersByFilter(
+                        email.orElse(""),
+                        msisdn.orElse(""),
+                        name.orElse(""),
+                        orderBy.orElse("email"),
+                        orderDirection.orElse("ASC"),
+                        page.map(Integer::valueOf).orElse(DEFAULT_PAGE_NUM),
+                        size.map(Integer::valueOf).orElse(DEFAULT_PAGE_SIZE)
+                ), UserResponse.class);
     }
 
     @IsUser
@@ -49,41 +91,38 @@ public class UserHandler {
                 return ErrorResponse.forbidden(ErrorCode.ACCESS_DENIED, "user");
             }
 
-            Mono<UserResponse> userResponseMono = userService.getUser(userId);
-
-            return userResponseMono.flatMap(u -> ServerResponse.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(u)
-            ).switchIfEmpty(ErrorResponse.notFound(ErrorCode.NOT_FOUND, "user"));
+            return userService.getUserAndMerchants(userId)
+                    .flatMap(u -> ServerResponse.ok()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue(u)
+                    ).switchIfEmpty(ErrorResponse.notFound(ErrorCode.NOT_FOUND, "user"));
         });
     }
 
-    @IsAdmin
-    Mono<ServerResponse> getUserByEmail(ServerRequest serverRequest) {
-        Optional<String> oEmail = serverRequest.queryParam(PARAM_EMAIL);
-        if (oEmail.isEmpty()) {
-            return ErrorResponse.badRequest(ErrorCode.MISSING_QUERY_PARAM, PARAM_EMAIL);
-        }
+    @IsUser
+    Mono<ServerResponse> getAuthenticatedUser(ServerRequest serverRequest) {
+        return serverRequest.principal().flatMap(principal -> {
+            UserAuthentication userAuthentication = (UserAuthentication) principal;
 
-        Mono<UserResponse> userResponseMono = userService.getUserByEmail(oEmail.get());
-
-        return userResponseMono.flatMap(u -> ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(u)
-        ).switchIfEmpty(ErrorResponse.notFound(ErrorCode.NOT_FOUND, "user"));
+            return userService.getUserAndMerchants((UUID) userAuthentication.getPrincipal())
+                    .flatMap(u -> ServerResponse.ok()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue(u)
+                    );
+        });
     }
 
     @IsAdmin
     Mono<ServerResponse> createUser(ServerRequest serverRequest) {
         Mono<UserRequest> userRequestMono = serverRequest.bodyToMono(UserRequest.class);
-        Mono<UserResponse> userResponseMono = userService.createUser(userRequestMono);
 
-        return userResponseMono.flatMap(u -> ServerResponse.created(null)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(u)
-        ).onErrorResume(
-                DataIntegrityViolationException.class,
-                throwable -> ErrorResponse.conflict(ErrorCode.DUPLICATE_VALUE, PARAM_EMAIL)
-        );
+        return userService.createUser(userRequestMono)
+                .flatMap(u -> ServerResponse.created(null)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(u)
+                ).onErrorResume(
+                        DataIntegrityViolationException.class,
+                        throwable -> ErrorResponse.conflict(ErrorCode.DUPLICATE_VALUE, PARAM_EMAIL)
+                );
     }
 }

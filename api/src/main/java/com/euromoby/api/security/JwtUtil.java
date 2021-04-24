@@ -1,5 +1,6 @@
 package com.euromoby.api.security;
 
+import com.euromoby.api.auth.AuthResponse;
 import com.euromoby.api.user.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -30,7 +31,11 @@ public class JwtUtil {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(User user) {
+    public AuthResponse buildAuthResponse(User user) {
+        return new AuthResponse(generateToken(user), expirationInSeconds());
+    }
+
+    private String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", user.getEmail());
         claims.put("name", user.getName());
@@ -44,6 +49,10 @@ public class JwtUtil {
 
     Boolean validateToken(String token) {
         return !isTokenExpired(token);
+    }
+
+    private Long expirationInSeconds() {
+        return Long.parseLong(expirationTime);
     }
 
     private Date getExpirationDateFromToken(String token) {
@@ -60,10 +69,8 @@ public class JwtUtil {
     }
 
     private String doGenerateToken(Map<String, Object> claims, String subject) {
-        long expirationTimeLong = Long.parseLong(expirationTime); //in second
-
         final Date createdDate = new Date();
-        final Date expirationDate = new Date(createdDate.getTime() + expirationTimeLong * 1000);
+        final Date expirationDate = new Date(createdDate.getTime() + expirationInSeconds() * 1000);
 
         return Jwts.builder()
                 .setClaims(claims)

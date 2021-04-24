@@ -12,7 +12,7 @@ import java.util.function.Function;
 
 @Service
 public class MerchantService {
-    private static final Function<Merchant, MerchantResponse> TO_DTO = m -> {
+    public static final Function<Merchant, MerchantResponse> TO_DTO = m -> {
         var dto = new MerchantResponse();
         dto.setId(m.getId());
         dto.setName(m.getName());
@@ -46,7 +46,7 @@ public class MerchantService {
         );
     }
 
-    Mono<MerchantResponse> getMerchant(UUID id) {
+    public Mono<MerchantResponse> getMerchant(UUID id) {
         return merchantRepository.findById(id).map(TO_DTO);
     }
 

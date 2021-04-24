@@ -19,7 +19,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 public class MerchantFilter implements HandlerFilterFunction<ServerResponse, ServerResponse> {
-    private static final String ATTRIBUTE_MERCHANT = "merchant";
+    private static final String ATTRIBUTE_MERCHANT = "com.euromoby.api.merchant";
 
     private MerchantRepository merchantRepository;
 

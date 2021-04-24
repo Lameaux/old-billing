@@ -27,67 +27,104 @@ public class UserRouter {
 
     @Bean
     @RouterOperation(operation = @Operation(
-            operationId = "listUsers", summary = "List all Users", tags = {DOC_TAGS},
+            operationId = "listAllUsers", summary = "List all users", tags = {DOC_TAGS},
+            parameters = {
+                    @Parameter(in = ParameterIn.QUERY, name = "page", description = "Page number"),
+                    @Parameter(in = ParameterIn.QUERY, name = "size", description = "Page size"),
+                    @Parameter(in = ParameterIn.QUERY, name = "order_by", description = "Order by"),
+                    @Parameter(in = ParameterIn.QUERY, name = "order_direction", description = "Order direction (ASC, DESC)")
+            },
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Users", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = UserResponse.class))))
+                    @ApiResponse(responseCode = "200", description = "List of users", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = UserResponse.class)))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden"),
             },
             security = {
                     @SecurityRequirement(name = SecurityConstants.BEARER)
             }
     ))
-    public RouterFunction<ServerResponse> listUsersRoute(UserHandler userHandler) {
+    public RouterFunction<ServerResponse> listAllUsers(UserHandler handler) {
         return RouterFunctions.route().path(API_ROOT, builder -> builder
-                .GET("", RequestPredicates.accept(MediaType.APPLICATION_JSON), userHandler::listUsers)
+                .GET("", RequestPredicates.accept(MediaType.APPLICATION_JSON), handler::listAll)
         ).build();
     }
 
     @Bean
     @RouterOperation(operation = @Operation(
-            operationId = "getUserByEmail", summary = "Get User by E-mail", tags = {DOC_TAGS},
-            parameters = {@Parameter(in = ParameterIn.QUERY, name = "email", description = "E-mail")},
+            operationId = "findUsersByFilter", summary = "Find users by filter", tags = {DOC_TAGS},
+            parameters = {
+                    @Parameter(in = ParameterIn.QUERY, name = "email", description = "E-mail"),
+                    @Parameter(in = ParameterIn.QUERY, name = "msisdn", description = "MSISDN"),
+                    @Parameter(in = ParameterIn.QUERY, name = "name", description = "Name"),
+                    @Parameter(in = ParameterIn.QUERY, name = "page", description = "Page number"),
+                    @Parameter(in = ParameterIn.QUERY, name = "size", description = "Page size"),
+                    @Parameter(in = ParameterIn.QUERY, name = "order_by", description = "Order by"),
+                    @Parameter(in = ParameterIn.QUERY, name = "order_direction", description = "Order direction (ASC, DESC)")
+            },
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = UserResponse.class)))),
-                    @ApiResponse(responseCode = "400", description = "Invalid E-mail supplied"),
-                    @ApiResponse(responseCode = "404", description = "User not found")
+                    @ApiResponse(responseCode = "200", description = "List of users", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = UserResponse.class)))),
+                    @ApiResponse(responseCode = "400", description = "Invalid query"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden"),
             },
             security = {
                     @SecurityRequirement(name = SecurityConstants.BEARER)
             }
     ))
-    public RouterFunction<ServerResponse> findUserRoute(UserHandler userHandler) {
+    public RouterFunction<ServerResponse> findUsersByFilter(UserHandler handler) {
         return RouterFunctions.route().path(API_ROOT, builder -> builder
-                .GET("/find_by", RequestPredicates.accept(MediaType.APPLICATION_JSON), userHandler::getUserByEmail)
+                .GET("/find_by", RequestPredicates.accept(MediaType.APPLICATION_JSON), handler::findByFilter)
         ).build();
     }
 
     @Bean
     @RouterOperation(operation = @Operation(
-            operationId = "findUserById", summary = "Get User by Id", tags = {DOC_TAGS},
+            operationId = "getAuthenticatedUser", summary = "Get authenticated user", tags = {DOC_TAGS},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "User", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = UserAndMerchantsResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden"),
+            },
+            security = {
+                    @SecurityRequirement(name = SecurityConstants.BEARER)
+            }
+    ))
+    public RouterFunction<ServerResponse> getAuthenticatedUser(UserHandler handler) {
+        return RouterFunctions.route().path(API_ROOT, builder -> builder
+                .GET("/me", RequestPredicates.accept(MediaType.APPLICATION_JSON), handler::getAuthenticatedUser)
+        ).build();
+    }
+
+    @Bean
+    @RouterOperation(operation = @Operation(
+            operationId = "getUser", summary = "Get user by Id", tags = {DOC_TAGS},
             parameters = {@Parameter(in = ParameterIn.PATH, name = "id", description = "User Id")},
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = UserResponse.class))),
-                    @ApiResponse(responseCode = "400", description = "Invalid User Id supplied"),
+                    @ApiResponse(responseCode = "200", description = "User", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = UserAndMerchantsResponse.class))),
+                    @ApiResponse(responseCode = "400", description = "Invalid Id supplied"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden"),
                     @ApiResponse(responseCode = "404", description = "User not found")
             },
             security = {
-                    @SecurityRequirement(name = SecurityConstants.HEADER_MERCHANT),
-                    @SecurityRequirement(name = SecurityConstants.HEADER_API_KEY),
                     @SecurityRequirement(name = SecurityConstants.BEARER)
             }
     ))
-    public RouterFunction<ServerResponse> getUserRoute(UserHandler userHandler) {
+    public RouterFunction<ServerResponse> getUser(UserHandler handler) {
         return RouterFunctions.route().path(API_ROOT, builder -> builder
-                .GET("/{id}", RequestPredicates.accept(MediaType.APPLICATION_JSON), userHandler::getUser)
+                .GET("/{id}", RequestPredicates.accept(MediaType.APPLICATION_JSON), handler::getUser)
         ).build();
     }
 
     @Bean
     @RouterOperation(operation = @Operation(
-            operationId = "createUser", summary = "Create a new User", tags = {DOC_TAGS},
+            operationId = "createUser", summary = "Create new user", tags = {DOC_TAGS},
             requestBody = @RequestBody(description = "User", required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = UserRequest.class))),
             responses = {
                     @ApiResponse(responseCode = "201", description = "Created", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = UserResponse.class))),
-                    @ApiResponse(responseCode = "400", description = "Invalid User"),
+                    @ApiResponse(responseCode = "400", description = "Invalid body"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden"),
                     @ApiResponse(responseCode = "409", description = "Duplicate User"),
                     @ApiResponse(responseCode = "500", description = "Server Error")
             },
@@ -95,7 +132,7 @@ public class UserRouter {
                     @SecurityRequirement(name = SecurityConstants.BEARER)
             }
     ))
-    public RouterFunction<ServerResponse> createUserRoute(UserHandler userHandler) {
+    public RouterFunction<ServerResponse> createUser(UserHandler userHandler) {
         return RouterFunctions.route().path(API_ROOT, builder -> builder
                 .POST("", RequestPredicates.accept(MediaType.APPLICATION_JSON), userHandler::createUser)
         ).build();

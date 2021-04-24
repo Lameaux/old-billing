@@ -3,11 +3,13 @@ package com.euromoby.api.user;
 import com.euromoby.api.common.ErrorCode;
 import com.euromoby.api.common.ErrorResponse;
 import com.euromoby.api.common.RouterTest;
+import com.euromoby.api.merchant.MerchantService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -15,12 +17,10 @@ import static org.hamcrest.CoreMatchers.equalTo;
 class UserRouterTest extends RouterTest {
     private final String API_ROOT = "/api/v1/users";
 
-    private UserService userService;
-
     @Autowired
-    UserRouterTest(UserService userService) {
-        this.userService = userService;
-    }
+    private UserService userService;
+    @Autowired
+    private MerchantService merchantService;
 
     UserResponse createNewUser() {
         UserRequest userRequest = new UserRequest();
@@ -56,10 +56,17 @@ class UserRouterTest extends RouterTest {
 
     @Test
     void getUserAsAdmin() {
-        var newUser = createNewUser();
+        var usersAndMerchants = new UserAndMerchantsResponse();
+        usersAndMerchants.setUser(UserService.TO_DTO.apply(getJUnitUser()));
+        var response = new MerchantWithRoleResponse();
+        response.setMerchant(merchantService.getMerchant(getJUnitMerchantId()).block());
+        response.setRole(MerchantRole.ROLE_OWNER);
+        usersAndMerchants.setMerchants(List.of(response));
 
-        authorizedAdminGet(API_ROOT + "/{id}", newUser.getId()).exchange()
-                .expectStatus().isOk().expectBody(UserResponse.class).isEqualTo(newUser);
+        authorizedAdminGet(API_ROOT + "/{id}", getJUnitUser().getId()).exchange()
+                .expectStatus().isOk()
+                .expectBody(UserAndMerchantsResponse.class)
+                .isEqualTo(usersAndMerchants);
     }
 
     @Test
@@ -78,33 +85,58 @@ class UserRouterTest extends RouterTest {
     }
 
     @Test
-    void findUserAsAnonymous() {
+    void getAuthenticatedUserAsAnonymous() {
+        webTestClient.get().uri(API_ROOT + "/me").exchange().expectStatus().isUnauthorized();
+    }
+
+    @Test
+    void getAuthenticatedUserAsUser() {
+        var usersAndMerchants = new UserAndMerchantsResponse();
+        usersAndMerchants.setUser(UserService.TO_DTO.apply(getJUnitUser()));
+        var response = new MerchantWithRoleResponse();
+        response.setMerchant(merchantService.getMerchant(getJUnitMerchantId()).block());
+        response.setRole(MerchantRole.ROLE_OWNER);
+        usersAndMerchants.setMerchants(List.of(response));
+
+        authorizedUserGet(API_ROOT + "/me").exchange()
+                .expectStatus().isOk()
+                .expectBody(UserAndMerchantsResponse.class)
+                .isEqualTo(usersAndMerchants);
+    }
+
+    @Test
+    void findUsersAsAnonymous() {
         webTestClient.get().uri(API_ROOT + "/find_by", UUID.randomUUID()).exchange().expectStatus().isUnauthorized();
     }
 
     @Test
-    void findUserBadRequest() {
-        authorizedAdminGet(API_ROOT + "/find_by").exchange().expectStatus().isBadRequest();
-    }
-
-    @Test
-    void findUserNotFound() {
-        authorizedAdminGet(API_ROOT + "/find_by?email={email}", UUID.randomUUID()).exchange()
-                .expectStatus().isNotFound();
-    }
-
-    @Test
-    void findUserAsUser() {
+    void findUsersAsUser() {
         authorizedUserGet(API_ROOT + "/find_by?email={email}", UUID.randomUUID()).exchange()
                 .expectStatus().isForbidden();
     }
 
     @Test
-    void findUserAsAdmin() {
+    void findUsersByEmail() {
         var newUser = createNewUser();
 
         authorizedAdminGet(API_ROOT + "/find_by?email={email}", newUser.getEmail()).exchange()
-                .expectStatus().isOk().expectBody(UserResponse.class).isEqualTo(newUser);
+                .expectStatus().isOk().expectBodyList(UserResponse.class).contains(newUser);
+    }
+
+    @Test
+    void findUsersByMsisdn() {
+        var newUser = createNewUser();
+
+        authorizedAdminGet(API_ROOT + "/find_by?msisdn={msisdn}", newUser.getMsisdn()).exchange()
+                .expectStatus().isOk().expectBodyList(UserResponse.class).contains(newUser);
+    }
+
+    @Test
+    void findUsersByName() {
+        var newUser = createNewUser();
+
+        authorizedAdminGet(API_ROOT + "/find_by?name={name}", newUser.getName()).exchange()
+                .expectStatus().isOk().expectBodyList(UserResponse.class).contains(newUser);
     }
 
     @Test
