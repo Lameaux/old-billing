@@ -42,7 +42,7 @@ class AuthRouterTest extends RouterTest {
         webTestClient.post().uri(API_ROOT + "/register").body(Mono.just(registerRequest), RegisterRequest.class).exchange()
                 .expectStatus().isBadRequest()
                 .expectBody(ErrorResponse.class)
-                .isEqualTo(ErrorResponse.of(ErrorCode.MISSING_BODY_PARAM, AuthHandler.PARAM_RECAPTCHA));
+                .isEqualTo(ErrorResponse.of(ErrorCode.INVALID_BODY_PARAM, AuthHandler.PARAM_RECAPTCHA));
     }
 
     @Test

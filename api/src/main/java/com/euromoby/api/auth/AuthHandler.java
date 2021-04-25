@@ -10,12 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-
-import java.util.Objects;
 
 @Component
 public class AuthHandler {
@@ -101,13 +98,10 @@ public class AuthHandler {
     }
 
     private Mono<ServerResponse> validate(RegisterRequest registerRequest) {
-        if (!StringUtils.hasText(registerRequest.getRecaptcha())) {
-            return ErrorResponse.badRequest(ErrorCode.MISSING_BODY_PARAM, PARAM_RECAPTCHA);
-        }
+        String invalidParamName = RegisterRequestValidator.validate(registerRequest);
 
-        // FIXME
-        if (!Objects.equals(registerRequest.getRecaptcha(), "42")) {
-            return ErrorResponse.badRequest(ErrorCode.INVALID_BODY_PARAM, PARAM_RECAPTCHA);
+        if (invalidParamName != null) {
+            return ErrorResponse.badRequest(ErrorCode.INVALID_BODY_PARAM, invalidParamName);
         }
 
         return null;
