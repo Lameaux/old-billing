@@ -36,11 +36,7 @@ public class JwtUtil {
     }
 
     private String generateToken(User user) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("email", user.getEmail());
-        claims.put("name", user.getName());
-        claims.put("admin", user.isAdmin());
-        return doGenerateToken(claims, user.getId().toString());
+        return doGenerateToken(user.getId().toString());
     }
 
     UUID getUserIdFromToken(String token) {
@@ -68,12 +64,11 @@ public class JwtUtil {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
     }
 
-    private String doGenerateToken(Map<String, Object> claims, String subject) {
+    private String doGenerateToken(String subject) {
         final Date createdDate = new Date();
         final Date expirationDate = new Date(createdDate.getTime() + expirationInSeconds() * 1000);
 
         return Jwts.builder()
-                .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(createdDate)
                 .setExpiration(expirationDate)

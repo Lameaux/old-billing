@@ -45,6 +45,7 @@ public class WebSecurityConfig {
                 .csrf().disable()
                 .formLogin().disable()
                 .httpBasic().disable()
+                .logout().disable()
                 .authenticationManager(authenticationManager)
                 .securityContextRepository(securityContextRepository)
                 .authorizeExchange()
