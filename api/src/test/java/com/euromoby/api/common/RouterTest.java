@@ -1,11 +1,13 @@
 package com.euromoby.api.common;
 
+import com.euromoby.api.TestDataLoader;
 import com.euromoby.api.merchant.Merchant;
 import com.euromoby.api.merchant.MerchantRepository;
 import com.euromoby.api.security.JwtUtil;
 import com.euromoby.api.security.SecurityConstants;
 import com.euromoby.api.user.User;
 import com.euromoby.api.user.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,6 +36,16 @@ public class RouterTest extends BaseTest {
 
     @Autowired
     JwtUtil jwtUtil;
+
+    @Autowired
+    TestDataLoader testDataLoader;
+
+    @BeforeEach
+    public void setUp() {
+        super.setUp();
+
+        testDataLoader.loadData();
+    }
 
     protected UUID getJUnitMerchantId() {
         return merchantRepository.findByName(MERCHANT_NAME).map(Merchant::getId).block();

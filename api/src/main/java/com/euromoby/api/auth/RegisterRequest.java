@@ -15,7 +15,7 @@ public class RegisterRequest {
     private String email;
 
     @NotEmpty
-    @Size(min=8)
+    @Size(min = 8)
     private String password;
 
     @Pattern(regexp = "\\+\\d{8,15}")

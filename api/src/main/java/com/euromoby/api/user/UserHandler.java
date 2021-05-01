@@ -8,6 +8,7 @@ import com.euromoby.api.security.IsAdmin;
 import com.euromoby.api.security.IsUser;
 import com.euromoby.api.security.UserAuthentication;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -22,7 +23,7 @@ import java.util.UUID;
 public class UserHandler {
     static final String PARAM_EMAIL = "email";
     private static final int DEFAULT_PAGE_NUM = 0;
-    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final int DEFAULT_PAGE_SIZE = 50;
     private static final String PARAM_ORDER_BY = "order_by";
     private static final String PARAM_ORDER_DIRECTION = "order_direction";
     private static final String PARAM_PAGE = "page";
@@ -47,8 +48,8 @@ public class UserHandler {
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(userService.getAllUsers(
-                        orderBy.orElse("email"),
-                        orderDirection.orElse("ASC"),
+                        orderBy.orElse(PARAM_EMAIL),
+                        orderDirection.orElse(Sort.Direction.ASC.toString()),
                         page.map(Integer::valueOf).orElse(DEFAULT_PAGE_NUM),
                         size.map(Integer::valueOf).orElse(DEFAULT_PAGE_SIZE)
                 ), UserResponse.class);
@@ -59,8 +60,6 @@ public class UserHandler {
         Optional<String> email = serverRequest.queryParam(PARAM_EMAIL);
         Optional<String> msisdn = serverRequest.queryParam(PARAM_MSISDN);
         Optional<String> name = serverRequest.queryParam(PARAM_NAME);
-        Optional<String> orderBy = serverRequest.queryParam(PARAM_ORDER_BY);
-        Optional<String> orderDirection = serverRequest.queryParam(PARAM_ORDER_DIRECTION);
         Optional<String> page = serverRequest.queryParam(PARAM_PAGE);
         Optional<String> size = serverRequest.queryParam(PARAM_SIZE);
 
@@ -70,8 +69,6 @@ public class UserHandler {
                         email.orElse(""),
                         msisdn.orElse(""),
                         name.orElse(""),
-                        orderBy.orElse("email"),
-                        orderDirection.orElse("ASC"),
                         page.map(Integer::valueOf).orElse(DEFAULT_PAGE_NUM),
                         size.map(Integer::valueOf).orElse(DEFAULT_PAGE_SIZE)
                 ), UserResponse.class);

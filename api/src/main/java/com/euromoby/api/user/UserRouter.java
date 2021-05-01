@@ -57,9 +57,7 @@ public class UserRouter {
                     @Parameter(in = ParameterIn.QUERY, name = "msisdn", description = "MSISDN"),
                     @Parameter(in = ParameterIn.QUERY, name = "name", description = "Name"),
                     @Parameter(in = ParameterIn.QUERY, name = "page", description = "Page number"),
-                    @Parameter(in = ParameterIn.QUERY, name = "size", description = "Page size"),
-                    @Parameter(in = ParameterIn.QUERY, name = "order_by", description = "Order by"),
-                    @Parameter(in = ParameterIn.QUERY, name = "order_direction", description = "Order direction (ASC, DESC)")
+                    @Parameter(in = ParameterIn.QUERY, name = "size", description = "Page size")
             },
             responses = {
                     @ApiResponse(responseCode = "200", description = "List of users", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = UserResponse.class)))),

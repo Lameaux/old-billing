@@ -3,9 +3,9 @@ package com.euromoby.api.payment;
 import com.euromoby.api.common.ErrorCode;
 import com.euromoby.api.common.ErrorResponse;
 import com.euromoby.api.common.UUIDValidator;
+import com.euromoby.api.security.AuthenticationUtil;
 import com.euromoby.api.security.IsOperator;
 import com.euromoby.api.security.IsViewer;
-import com.euromoby.api.security.MerchantFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.MediaType;
@@ -31,9 +31,11 @@ public class PaymentHandler {
 
     @IsViewer
     Mono<ServerResponse> listPayments(ServerRequest serverRequest) {
-        return ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(paymentService.getAllPayments(getMerchantId(serverRequest)), PaymentResponse.class);
+        return AuthenticationUtil.getMerchantId(serverRequest).flatMap(merchantId ->
+                ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(paymentService.getAllPayments(merchantId), PaymentResponse.class)
+        );
     }
 
     @IsViewer
@@ -43,7 +45,9 @@ public class PaymentHandler {
             return ErrorResponse.badRequest(ErrorCode.INVALID_UUID, PARAM_ID);
         }
 
-        Mono<PaymentResponse> paymentResponseMono = paymentService.getPayment(UUID.fromString(id), getMerchantId(serverRequest));
+        Mono<PaymentResponse> paymentResponseMono = AuthenticationUtil.getMerchantId(serverRequest).flatMap(merchantId ->
+                paymentService.getPayment(UUID.fromString(id), merchantId)
+        );
 
         return paymentResponseMono.flatMap(p -> ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -59,7 +63,9 @@ public class PaymentHandler {
             return ErrorResponse.badRequest(ErrorCode.MISSING_QUERY_PARAM, PARAM_MERCHANT_REFERENCE);
         }
 
-        Mono<PaymentResponse> paymentResponseMono = paymentService.getPaymentByMerchantReference(getMerchantId(serverRequest), omr.get());
+        Mono<PaymentResponse> paymentResponseMono = AuthenticationUtil.getMerchantId(serverRequest).flatMap(merchantId ->
+                paymentService.getPaymentByMerchantReference(merchantId, omr.get())
+        );
 
         return paymentResponseMono.flatMap(p -> ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -71,9 +77,11 @@ public class PaymentHandler {
     Mono<ServerResponse> createPayment(ServerRequest serverRequest) {
         Mono<PaymentRequest> paymentRequestMono = serverRequest.bodyToMono(PaymentRequest.class);
 
-        Mono<PaymentResponse> paymentResponseMono = paymentService.createPayment(getMerchantId(serverRequest), paymentRequestMono);
+        Mono<PaymentResponse> paymentResponseMono = AuthenticationUtil.getMerchantId(serverRequest).flatMap(merchantId ->
+                paymentService.createPayment(merchantId, paymentRequestMono)
+        );
 
-        // FIXME validation of input pramaeters
+        // FIXME validation of input parameters
 
         return paymentResponseMono.flatMap(p -> ServerResponse.created(null)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -82,9 +90,5 @@ public class PaymentHandler {
                 DuplicateKeyException.class,
                 throwable -> ErrorResponse.conflict(ErrorCode.DUPLICATE_VALUE, PARAM_MERCHANT_REFERENCE)
         );
-    }
-
-    private UUID getMerchantId(ServerRequest serverRequest) {
-        return MerchantFilter.getMerchantId(serverRequest);
     }
 }

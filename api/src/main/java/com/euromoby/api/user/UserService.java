@@ -48,12 +48,15 @@ public class UserService {
         ).map(TO_DTO);
     }
 
-    Flux<UserResponse> findUsersByFilter(String email, String msisdn, String name, String orderBy, String orderDirection, int page, int size) {
-        return userRepository.findAllByEmailOrMsisdnOrName(
+    Flux<UserResponse> findUsersByFilter(String email, String msisdn, String name, int page, int size) {
+        var pageRequest = PageRequest.of(page, size);
+
+        return userRepository.findAllByFilter(
                 email,
                 msisdn,
                 name,
-                PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderDirection), orderBy))
+                pageRequest.getPageSize(),
+                pageRequest.getOffset()
         ).map(TO_DTO);
     }
 

@@ -1,6 +1,5 @@
 package com.euromoby.api.payment;
 
-import com.euromoby.api.security.MerchantFilter;
 import com.euromoby.api.security.SecurityConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,7 +11,6 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springdoc.core.annotations.RouterOperation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -27,13 +25,6 @@ public class PaymentRouter {
     private static final String API_ROOT = "/api/v1/payments";
     private static final String DOC_TAGS = "Payments";
 
-    private final MerchantFilter authFilter;
-
-    @Autowired
-    public PaymentRouter(MerchantFilter authFilter) {
-        this.authFilter = authFilter;
-    }
-
     @Bean
     @RouterOperation(operation = @Operation(
             operationId = "listPayments", summary = "List all Payments", tags = {DOC_TAGS},
@@ -46,7 +37,7 @@ public class PaymentRouter {
                     @SecurityRequirement(name = SecurityConstants.BEARER)
             }))
     public RouterFunction<ServerResponse> listPaymentsRoute(PaymentHandler paymentsHandler) {
-        return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
+        return RouterFunctions.route().path(API_ROOT, builder -> builder
                 .GET("", RequestPredicates.accept(MediaType.APPLICATION_JSON), paymentsHandler::listPayments)
         ).build();
     }
@@ -66,7 +57,7 @@ public class PaymentRouter {
                     @SecurityRequirement(name = SecurityConstants.BEARER)
             }))
     public RouterFunction<ServerResponse> findPaymentRoute(PaymentHandler paymentHandler) {
-        return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
+        return RouterFunctions.route().path(API_ROOT, builder -> builder
                 .GET("/find_by", RequestPredicates.accept(MediaType.APPLICATION_JSON), paymentHandler::getPaymentByMerchantReference)
         ).build();
     }
@@ -86,7 +77,7 @@ public class PaymentRouter {
                     @SecurityRequirement(name = SecurityConstants.BEARER)
             }))
     public RouterFunction<ServerResponse> getPaymentRoute(PaymentHandler paymentsHandler) {
-        return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
+        return RouterFunctions.route().path(API_ROOT, builder -> builder
                 .GET("/{id}", RequestPredicates.accept(MediaType.APPLICATION_JSON), paymentsHandler::getPayment)
         ).build();
     }
@@ -107,7 +98,7 @@ public class PaymentRouter {
                     @SecurityRequirement(name = SecurityConstants.BEARER)
             }))
     public RouterFunction<ServerResponse> createPaymentRoute(PaymentHandler paymentHandler) {
-        return RouterFunctions.route().path(API_ROOT, builder -> builder.filter(authFilter)
+        return RouterFunctions.route().path(API_ROOT, builder -> builder
                 .POST("", RequestPredicates.accept(MediaType.APPLICATION_JSON), paymentHandler::createPayment)
         ).build();
     }

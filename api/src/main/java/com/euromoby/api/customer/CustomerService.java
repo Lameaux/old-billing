@@ -1,6 +1,8 @@
 package com.euromoby.api.customer;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -28,16 +30,29 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
-    public Flux<CustomerResponse> getAllCustomers(UUID merchantId) {
-        return customerRepository.findAllByMerchantId(merchantId).map(TO_DTO);
+    Flux<CustomerResponse> getAllCustomers(UUID merchantId, String orderBy, String orderDirection, int page, int size) {
+        return customerRepository.findAllByMerchantIdAndIdNotNull(
+                merchantId,
+                PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderDirection), orderBy))
+        ).map(TO_DTO);
     }
 
-    public Mono<CustomerResponse> getCustomer(UUID id, UUID merchantId) {
+    Flux<CustomerResponse> findCustomersByFilter(UUID merchantId, String merchantReference, String email, String msisdn, String name, int page, int size) {
+        var pageRequest = PageRequest.of(page, size);
+
+        return customerRepository.findAllByMerchantIdAndFilter(
+                merchantId,
+                merchantReference,
+                email,
+                msisdn,
+                name,
+                pageRequest.getPageSize(),
+                pageRequest.getOffset()
+        ).map(TO_DTO);
+    }
+
+    Mono<CustomerResponse> getCustomer(UUID id, UUID merchantId) {
         return customerRepository.findByIdAndMerchantId(id, merchantId).map(TO_DTO);
-    }
-
-    public Mono<CustomerResponse> getCustomerByMerchantReference(UUID merchantId, String merchantReference) {
-        return customerRepository.findByMerchantIdAndMerchantReference(merchantId, merchantReference).map(TO_DTO);
     }
 
     public Mono<CustomerResponse> createCustomer(UUID merchantId, Mono<CustomerRequest> customerRequestMono) {

@@ -20,22 +20,28 @@ class CustomerRouterTest extends RouterTest {
     }
 
     CustomerResponse createNewCustomer() {
+        return createNewCustomer(null, null, null, null);
+    }
+
+    CustomerResponse createNewCustomer(String merchantReference, String email, String msisdn, String name) {
         CustomerRequest customerRequest = new CustomerRequest();
-        customerRequest.setMerchantReference(UUID.randomUUID().toString());
-        Mono<CustomerResponse> response = customerService.createCustomer(
+        customerRequest.setMerchantReference(merchantReference);
+        customerRequest.setEmail(email);
+        customerRequest.setMsisdn(msisdn);
+        customerRequest.setName(name);
+        return customerService.createCustomer(
                 getJUnitMerchantId(),
                 Mono.just(customerRequest)
-        );
-        return response.block();
+        ).block();
     }
 
     @Test
-    void testListCustomersUnauthorized() {
+    void listCustomersAsAnonymous() {
         webTestClient.get().uri(API_ROOT).exchange().expectStatus().isUnauthorized();
     }
 
     @Test
-    void testListCustomers() {
+    void listCustomers() {
         CustomerResponse newCustomer = createNewCustomer();
 
         authorizedMerchantGet(API_ROOT).exchange()
@@ -44,17 +50,17 @@ class CustomerRouterTest extends RouterTest {
     }
 
     @Test
-    void testGetCustomerUnauthorized() {
+    void getCustomerAsAnonymous() {
         webTestClient.get().uri(API_ROOT + "/{id}", UUID.randomUUID()).exchange().expectStatus().isUnauthorized();
     }
 
     @Test
-    void testGetCustomerNotFound() {
+    void getCustomerNotFound() {
         authorizedMerchantGet(API_ROOT + "/{id}", UUID.randomUUID()).exchange().expectStatus().isNotFound();
     }
 
     @Test
-    void testGetCustomer() {
+    void getCustomer() {
         CustomerResponse newCustomer = createNewCustomer();
 
         authorizedMerchantGet(API_ROOT + "/{id}", newCustomer.getId()).exchange()
@@ -63,37 +69,60 @@ class CustomerRouterTest extends RouterTest {
     }
 
     @Test
-    void testFindCustomerUnauthorized() {
+    void findCustomersAsAnonymous() {
         webTestClient.get().uri(API_ROOT + "/find_by", UUID.randomUUID()).exchange().expectStatus().isUnauthorized();
     }
 
     @Test
-    void testFindCustomerBadRequest() {
-        authorizedMerchantGet(API_ROOT + "/find_by", UUID.randomUUID()).exchange().expectStatus().isBadRequest();
-    }
-
-    @Test
-    void testFindCustomerNotFound() {
+    void findCustomersNotFound() {
         authorizedMerchantGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", UUID.randomUUID()).exchange()
-                .expectStatus().isNotFound();
+                .expectStatus().isOk()
+                .expectBodyList(CustomerResponse.class).hasSize(0);
     }
 
     @Test
-    void testFindCustomer() {
-        CustomerResponse newCustomer = createNewCustomer();
+    void findCustomersByMerchantReference() {
+        CustomerResponse newCustomer = createNewCustomer(UUID.randomUUID().toString(), null, null, null);
 
         authorizedMerchantGet(API_ROOT + "/find_by?merchant_reference={merchant_reference}", newCustomer.getMerchantReference()).exchange()
                 .expectStatus().isOk()
-                .expectBody(CustomerResponse.class).isEqualTo(newCustomer);
+                .expectBodyList(CustomerResponse.class).hasSize(1).contains(newCustomer);
     }
 
     @Test
-    void testCreateCustomerUnauthorized() {
+    void findCustomersByEmail() {
+        CustomerResponse newCustomer = createNewCustomer(null, "customer@euromoby.com", null, null);
+
+        authorizedMerchantGet(API_ROOT + "/find_by?email={email}", newCustomer.getEmail()).exchange()
+                .expectStatus().isOk()
+                .expectBodyList(CustomerResponse.class).hasSize(1).contains(newCustomer);
+    }
+
+    @Test
+    void findCustomersByMsisdn() {
+        CustomerResponse newCustomer = createNewCustomer(null, null, "+100500", null);
+
+        authorizedMerchantGet(API_ROOT + "/find_by?msisdn={msisdn}", newCustomer.getMsisdn()).exchange()
+                .expectStatus().isOk()
+                .expectBodyList(CustomerResponse.class).hasSize(1).contains(newCustomer);
+    }
+
+    @Test
+    void findCustomersByName() {
+        CustomerResponse newCustomer = createNewCustomer(null, null, null, "James Bond");
+
+        authorizedMerchantGet(API_ROOT + "/find_by?name={name}", newCustomer.getName()).exchange()
+                .expectStatus().isOk()
+                .expectBodyList(CustomerResponse.class).hasSize(1).contains(newCustomer);
+    }
+
+    @Test
+    void createCustomerAsAnonymous() {
         webTestClient.post().uri(API_ROOT).exchange().expectStatus().isUnauthorized();
     }
 
     @Test
-    void testCreateCustomer() {
+    void createCustomer() {
         var customerRequest = new CustomerRequest();
         customerRequest.setMerchantReference(UUID.randomUUID().toString());
 

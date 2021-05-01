@@ -1,19 +1,20 @@
 package com.euromoby.api;
 
+import com.euromoby.api.customer.CustomerRepository;
 import com.euromoby.api.merchant.Merchant;
 import com.euromoby.api.merchant.MerchantEnv;
 import com.euromoby.api.merchant.MerchantRepository;
+import com.euromoby.api.payment.PaymentRepository;
 import com.euromoby.api.user.*;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.Profile;
-import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Component;
 
-@Profile("test")
+import java.util.Arrays;
+
 @Component
-public class TestDataLoader implements ApplicationListener<ContextRefreshedEvent> {
+public class TestDataLoader {
 
     @Autowired
     protected UserRepository userRepository;
@@ -24,21 +25,28 @@ public class TestDataLoader implements ApplicationListener<ContextRefreshedEvent
     @Autowired
     protected UserMerchantRepository userMerchantRepository;
 
-    @Override
-    public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
-        cleanupDatabase();
+    @Autowired
+    protected CustomerRepository customerRepository;
 
+    @Autowired
+    protected PaymentRepository paymentRepository;
+
+    public void cleanupDatabase() {
+        Arrays.<ReactiveCrudRepository>asList(
+                paymentRepository,
+                customerRepository,
+                userMerchantRepository,
+                merchantRepository,
+                userRepository
+        ).forEach(repo -> repo.deleteAll().block());
+    }
+
+    public void loadData() {
         createAdmin();
 
         User user = createUser();
         Merchant merchant = createMerchant();
-        createUserMerchant(user, merchant, MerchantRole.ROLE_OWNER);
-    }
-
-    private void cleanupDatabase() {
-        userMerchantRepository.deleteAll().block();
-        merchantRepository.deleteAll().block();
-        userRepository.deleteAll().block();
+        createUserMerchant(user, merchant);
     }
 
     private void createAdmin() {
@@ -69,11 +77,11 @@ public class TestDataLoader implements ApplicationListener<ContextRefreshedEvent
         return merchantRepository.save(merchant).block();
     }
 
-    private void createUserMerchant(User user, Merchant merchant, MerchantRole role) {
+    private void createUserMerchant(User user, Merchant merchant) {
         UserMerchant userMerchant = new UserMerchant();
         userMerchant.setUserId(user.getId());
         userMerchant.setMerchantId(merchant.getId());
-        userMerchant.setRole(role);
+        userMerchant.setRole(MerchantRole.ROLE_OWNER);
         userMerchantRepository.save(userMerchant).block();
     }
 }
